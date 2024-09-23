@@ -1,198 +1,253 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Asset, Transaction
 from decimal import Decimal
-from datetime import datetime, timezone
+from .models import Portfolio, Asset, Transaction
+from users.models import CustomUser
+from .serializers import PortfolioSerializer, AssetSerializer, TransactionSerializer
 
-class AssetAPITestCase(TestCase):
+class ModelTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='testuser', password='12345')
+        self.portfolio = Portfolio.objects.get(user=self.user)
+        self.asset = Asset.objects.create(
+            portfolio=self.portfolio,
+            name='Test Stock',
+            symbol='TST',
+            asset_type='STOCK',
+            quantity=10,
+            current_price=100.00
+        )
+
+    def test_custom_user_creation(self):
+        self.assertTrue(isinstance(self.user, CustomUser))
+        self.assertEqual(str(self.user), 'testuser')
+
+    def test_portfolio_creation(self):
+        self.assertTrue(isinstance(self.portfolio, Portfolio))
+        self.assertEqual(str(self.portfolio), "testuser's Portfolio")
+
+    def test_asset_creation(self):
+        self.assertTrue(isinstance(self.asset, Asset))
+        self.assertEqual(str(self.asset), "Test Stock (TST)")
+
+    def test_transaction_creation_buy(self):
+        transaction = Transaction.objects.create(
+            portfolio=self.portfolio,
+            asset=self.asset,
+            transaction_type='BUY',
+            quantity=5,
+            price=100.00
+        )
+        self.assertTrue(isinstance(transaction, Transaction))
+        self.assertEqual(str(transaction), "Buy 5.00 TST at 100.00")
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.quantity, 15)
+
+    def test_transaction_creation_sell(self):
+        transaction = Transaction.objects.create(
+            portfolio=self.portfolio,
+            asset=self.asset,
+            transaction_type='SELL',
+            quantity=5,
+            price=100.00
+        )
+        self.assertTrue(isinstance(transaction, Transaction))
+        self.assertEqual(str(transaction), "Sell 5.00 TST at 100.00")
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.quantity, 5)
+
+    def test_transaction_creation_sell_more_than_owned(self):
+        with self.assertRaises(ValueError):
+            Transaction.objects.create(
+                portfolio=self.portfolio,
+                asset=self.asset,
+                transaction_type='SELL',
+                quantity=15,
+                price=100.00
+            )
+
+class SerializerTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='testuser', password='12345')
+        self.portfolio = Portfolio.objects.get(user=self.user)
+        self.asset = Asset.objects.create(
+            portfolio=self.portfolio,
+            name='Test Stock',
+            symbol='TST',
+            asset_type='STOCK',
+            quantity=10,
+            current_price=100.00
+        )
+        self.transaction = Transaction.objects.create(
+            portfolio=self.portfolio,
+            asset=self.asset,
+            transaction_type='BUY',
+            quantity=5,
+            price=100.00
+        )
+
+    def test_portfolio_serializer(self):
+        serializer = PortfolioSerializer(instance=self.portfolio)
+        self.assertEqual(set(serializer.data.keys()), {'id', 'user', 'assets', 'transactions'})
+
+    def test_asset_serializer(self):
+        serializer = AssetSerializer(instance=self.asset)
+        self.assertEqual(set(serializer.data.keys()), {'id', 'name', 'symbol', 'asset_type', 'quantity', 'current_price'})
+
+    def test_transaction_serializer(self):
+        serializer = TransactionSerializer(instance=self.transaction)
+        self.assertEqual(set(serializer.data.keys()), {'id', 'asset', 'transaction_type', 'quantity', 'price', 'date'})
+
+class APITests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.user = CustomUser.objects.create_user(username='testuser', password='12345')
         self.client.force_authenticate(user=self.user)
-        self.asset_data = {
-            'name': 'Test Stock',
-            'symbol': 'TST',
-            'asset_type': 'STOCK',
-            'quantity': '100.00',
-        }
-        self.url = reverse('asset-list')
+        self.portfolio = Portfolio.objects.get(user=self.user)
+        self.asset = Asset.objects.create(
+            portfolio=self.portfolio,
+            name='Test Stock',
+            symbol='TST',
+            asset_type='STOCK',
+            quantity=10,
+            current_price=100.00
+        )
 
-    def test_create_asset(self):
-        response = self.client.post(self.url, self.asset_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Asset.objects.count(), 1)
-        self.assertEqual(Asset.objects.get().name, 'Test Stock')
-        self.assertEqual(Asset.objects.get().user, self.user)
+    def test_get_portfolio(self):
+        url = reverse('portfolio-detail')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['user'], self.user.id)
 
-    def test_create_asset_invalid_data(self):
-        invalid_data = self.asset_data.copy()
-        invalid_data['quantity'] = 'not a number'
-        response = self.client.post(self.url, invalid_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_get_asset_list(self):
-        Asset.objects.create(user=self.user, **self.asset_data)
-        response = self.client.get(self.url)
+    def test_get_assets(self):
+        url = reverse('asset-list')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
-    def test_get_asset_detail(self):
-        asset = Asset.objects.create(user=self.user, **self.asset_data)
-        url = reverse('asset-detail', kwargs={'pk': asset.pk})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], self.asset_data['name'])
+    def test_create_asset(self):
+        url = reverse('asset-list')
+        data = {
+            'name': 'New Stock',
+            'symbol': 'NEW',
+            'asset_type': 'STOCK',
+            'quantity': 5,
+            'current_price': 50.00
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Asset.objects.count(), 2)
+
+    def test_create_asset_invalid_data(self):
+        url = reverse('asset-list')
+        data = {
+            'name': 'Invalid Stock',
+            'symbol': 'INV',
+            'asset_type': 'INVALID',  # Invalid asset type
+            'quantity': 5,
+            'current_price': 50.00
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_asset(self):
-        asset = Asset.objects.create(user=self.user, **self.asset_data)
-        url = reverse('asset-detail', kwargs={'pk': asset.pk})
-        updated_data = {'name': 'Updated Stock', 'quantity': '150.00'}
-        response = self.client.patch(url, updated_data, format='json')
+        url = reverse('asset-detail', args=[self.asset.id])
+        data = {
+            'name': 'Updated Stock',
+            'symbol': 'UPD',
+            'asset_type': 'STOCK',
+            'quantity': 15,
+            'current_price': 150.00
+        }
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Asset.objects.get(pk=asset.pk).name, 'Updated Stock')
-        self.assertEqual(Asset.objects.get(pk=asset.pk).quantity, Decimal('150.00'))
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.name, 'Updated Stock')
 
     def test_delete_asset(self):
-        asset = Asset.objects.create(user=self.user, **self.asset_data)
-        url = reverse('asset-detail', kwargs={'pk': asset.pk})
+        url = reverse('asset-detail', args=[self.asset.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Asset.objects.count(), 0)
 
-    def test_create_asset_missing_fields(self):
-        incomplete_data = {'name': 'Incomplete Stock'}
-        response = self.client.post(self.url, incomplete_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_duplicate_asset(self):
-        Asset.objects.create(user=self.user, **self.asset_data)
-        response = self.client.post(self.url, self.asset_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Asset.objects.count(), 2)
-
-    def test_get_nonexistent_asset(self):
-        url = reverse('asset-detail', kwargs={'pk': 999})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_update_asset_invalid_data(self):
-        asset = Asset.objects.create(user=self.user, **self.asset_data)
-        url = reverse('asset-detail', kwargs={'pk': asset.pk})
-        invalid_data = {'quantity': 'not a number'}
-        response = self.client.patch(url, invalid_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_asset_list_ordering(self):
-        Asset.objects.create(user=self.user, name='C Stock', symbol='C', asset_type='STOCK', quantity='100.00')
-        Asset.objects.create(user=self.user, name='A Stock', symbol='A', asset_type='STOCK', quantity='100.00')
-        Asset.objects.create(user=self.user, name='B Stock', symbol='B', asset_type='STOCK', quantity='100.00')
-        
-        # Test default ordering (by name)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['name'], 'A Stock')
-        self.assertEqual(response.data[2]['name'], 'C Stock')
-
-        # Test explicit ordering by name descending
-        response = self.client.get(f"{self.url}?ordering=-name")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['name'], 'C Stock')
-        self.assertEqual(response.data[2]['name'], 'A Stock')
-
-        # Test ordering by symbol
-        response = self.client.get(f"{self.url}?ordering=symbol")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['symbol'], 'A')
-        self.assertEqual(response.data[2]['symbol'], 'C')
-
-
-class TransactionAPITestCase(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
-        self.client.force_authenticate(user=self.user)
-        self.asset = Asset.objects.create(
-            user=self.user,
-            name='Test Stock',
-            symbol='TST',
-            asset_type='STOCK',
-            quantity='100.00'
+    def test_get_transactions(self):
+        Transaction.objects.create(
+            portfolio=self.portfolio,
+            asset=self.asset,
+            transaction_type='BUY',
+            quantity=5,
+            price=100.00
         )
-        self.transaction_data = {
-            'asset': self.asset,  # Use the Asset instance instead of its ID
-            'transaction_type': 'BUY',
-            'quantity': '10.00',
-            'price': '50.00',
-        }
-        self.url = reverse('transaction-list')
-
-    def test_create_transaction(self):
-        data = self.transaction_data.copy()
-        data['asset'] = self.asset.id  # Use asset ID for API request
-        response = self.client.post(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Transaction.objects.count(), 1)
-        self.assertEqual(Transaction.objects.get().transaction_type, 'BUY')
-        self.assertEqual(Transaction.objects.get().user, self.user)
-
-    def test_create_transaction_invalid_data(self):
-        invalid_data = self.transaction_data.copy()
-        invalid_data['quantity'] = 'not a number'
-        invalid_data['asset'] = self.asset.id  # Use asset ID for API request
-        response = self.client.post(self.url, invalid_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_get_transaction_list(self):
-        Transaction.objects.create(user=self.user, **self.transaction_data)
-        response = self.client.get(self.url)
+        url = reverse('transaction-list')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
-    def test_get_transaction_detail(self):
-        transaction = Transaction.objects.create(user=self.user, **self.transaction_data)
-        url = reverse('transaction-detail', kwargs={'pk': transaction.pk})
+    def test_create_transaction(self):
+        url = reverse('transaction-list')
+        data = {
+            'asset': self.asset.id,
+            'transaction_type': 'BUY',
+            'quantity': 5,
+            'price': 100.00
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Transaction.objects.count(), 1)
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.quantity, 15)
+
+    def test_create_transaction_sell_more_than_owned(self):
+        url = reverse('transaction-list')
+        data = {
+            'asset': self.asset.id,
+            'transaction_type': 'SELL',
+            'quantity': 15,
+            'price': 100.00
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class AuthorizationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = CustomUser.objects.create_user(username='user1', password='12345')
+        self.user2 = CustomUser.objects.create_user(username='user2', password='12345')
+        self.portfolio1 = Portfolio.objects.get(user=self.user1)
+        self.portfolio2 = Portfolio.objects.get(user=self.user2)
+        self.asset1 = Asset.objects.create(
+            portfolio=self.portfolio1,
+            name='User1 Stock',
+            symbol='US1',
+            asset_type='STOCK',
+            quantity=10,
+            current_price=100.00
+        )
+        self.asset2 = Asset.objects.create(
+            portfolio=self.portfolio2,
+            name='User2 Stock',
+            symbol='US2',
+            asset_type='STOCK',
+            quantity=10,
+            current_price=100.00
+        )
+
+    def test_user_can_access_own_portfolio(self):
+        self.client.force_authenticate(user=self.user1)
+        url = reverse('portfolio-detail')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['transaction_type'], self.transaction_data['transaction_type'])
+        self.assertEqual(response.data['user'], self.user1.id)
 
-    def test_update_transaction(self):
-        transaction = Transaction.objects.create(user=self.user, **self.transaction_data)
-        url = reverse('transaction-detail', kwargs={'pk': transaction.pk})
-        updated_data = {'quantity': '15.00', 'price': '55.00'}
-        response = self.client.patch(url, updated_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Transaction.objects.get(pk=transaction.pk).quantity, Decimal('15.00'))
-        self.assertEqual(Transaction.objects.get(pk=transaction.pk).price, Decimal('55.00'))
+    def test_user_cannot_access_other_user_portfolio(self):
+        self.client.force_authenticate(user=self.user1)
+        url = reverse('asset-detail', args=[self.asset2.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_delete_transaction(self):
-        transaction = Transaction.objects.create(user=self.user, **self.transaction_data)
-        url = reverse('transaction-detail', kwargs={'pk': transaction.pk})
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Transaction.objects.count(), 0)
-
-    def test_transaction_list_ordering(self):
-        Transaction.objects.create(user=self.user, asset=self.asset, transaction_type='BUY', quantity='10.00', price='50.00', date=datetime(2023, 1, 1, tzinfo=timezone.utc))
-        Transaction.objects.create(user=self.user, asset=self.asset, transaction_type='SELL', quantity='5.00', price='60.00', date=datetime(2023, 2, 1, tzinfo=timezone.utc))
-        Transaction.objects.create(user=self.user, asset=self.asset, transaction_type='BUY', quantity='15.00', price='45.00', date=datetime(2023, 3, 1, tzinfo=timezone.utc))
-        
-        # Test default ordering (by date descending)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['quantity'], '15.00')
-        self.assertEqual(response.data[2]['quantity'], '10.00')
-
-        # Test explicit ordering by quantity
-        response = self.client.get(f"{self.url}?ordering=quantity")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['quantity'], '5.00')
-        self.assertEqual(response.data[2]['quantity'], '15.00')
-
-        # Test ordering by transaction_type
-        response = self.client.get(f"{self.url}?ordering=transaction_type")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['transaction_type'], 'BUY')
-        self.assertEqual(response.data[2]['transaction_type'], 'SELL')
+    def test_unauthenticated_user_cannot_access_portfolio(self):
+        url = reverse('portfolio-detail')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

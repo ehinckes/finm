@@ -1,24 +1,83 @@
-from rest_framework import viewsets
-from rest_framework.filters import OrderingFilter
-from .models import Asset, Transaction
-from .serializers import AssetSerializer, TransactionSerializer
+from .models import Portfolio, Asset, Transaction
+from .serializers import PortfolioSerializer, AssetSerializer, TransactionSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
-class AssetViewSet(viewsets.ModelViewSet):
-    queryset = Asset.objects.all()
-    serializer_class = AssetSerializer
-    filter_backends = [OrderingFilter]
-    ordering_fields = ['name', 'symbol', 'asset_type', 'quantity']
-    ordering = ['name']  # Default ordering
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def portfolio_detail(request):
+    portfolio = request.user.portfolio
+    serializer = PortfolioSerializer(portfolio)
+    return Response(serializer.data)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def asset_list(request):
+    if request.method == 'GET':
+        assets = Asset.objects.filter(portfolio=request.user.portfolio)
+        serializer = AssetSerializer(assets, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = AssetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(portfolio=request.user.portfolio)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class TransactionViewSet(viewsets.ModelViewSet):
-    queryset = Transaction.objects.all()
-    serializer_class = TransactionSerializer
-    filter_backends = [OrderingFilter]
-    ordering_fields = ['date', 'asset__symbol', 'transaction_type', 'quantity', 'price']
-    ordering = ['-date']  # Default ordering, most recent first
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def asset_detail(request, pk):
+    try:
+        asset = Asset.objects.get(pk=pk, portfolio=request.user.portfolio)
+    except Asset.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    if request.method == 'GET':
+        serializer = AssetSerializer(asset)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = AssetSerializer(asset, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        asset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def transaction_list(request):
+    if request.method == 'GET':
+        transactions = Transaction.objects.filter(portfolio=request.user.portfolio)
+        serializer = TransactionSerializer(transactions, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = TransactionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(portfolio=request.user.portfolio)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def transaction_detail(request, pk):
+    try:
+        transaction = Transaction.objects.get(pk=pk, portfolio=request.user.portfolio)
+    except Transaction.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = TransactionSerializer(transaction)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = TransactionSerializer(transaction, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        transaction.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
