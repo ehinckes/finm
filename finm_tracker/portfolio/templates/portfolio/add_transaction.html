@@ -1,0 +1,35 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Add Transaction - Financial Portfolio Tracker{% endblock %}
+
+{% block content %}
+<h2>Add Transaction</h2>
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="asset_symbol" class="form-label">Asset Symbol</label>
+        <input type="text" class="form-control" id="asset_symbol" name="asset_symbol" required>
+    </div>
+    <div class="mb-3">
+        <label for="transaction_type" class="form-label">Transaction Type</label>
+        <select class="form-select" id="transaction_type" name="transaction_type" required>
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="quantity" class="form-label">Quantity</label>
+        <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required>
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Price</label>
+        <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Transaction</button>
+</form>
+{% endblock %}

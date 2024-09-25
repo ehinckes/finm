@@ -24,7 +24,7 @@ class Asset(models.Model):
     name = models.CharField(max_length=100)
     asset_type = models.CharField(max_length=10, choices=ASSET_TYPES)
     quantity = models.DecimalField(max_digits=15, decimal_places=6, default=0)
-    current_price = models.DecimalField(max_digits=15, decimal_places=2)
+    current_price = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
 
     class Meta:
         unique_together = ['portfolio', 'symbol']
@@ -46,11 +46,11 @@ class Transaction(models.Model):
     ]
 
     portfolio = models.ForeignKey(Portfolio, related_name='transactions', on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(default=timezone.now)
     asset_symbol = models.CharField(max_length=10)
     transaction_type = models.CharField(max_length=4, choices=TRANSACTION_TYPES)
     quantity = models.DecimalField(max_digits=15, decimal_places=6)
     price = models.DecimalField(max_digits=15, decimal_places=2)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = ['portfolio', 'timestamp']

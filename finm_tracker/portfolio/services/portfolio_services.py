@@ -1,11 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction as db_transaction
+from django.utils import timezone
 from ..models import Asset, Transaction
 from decimal import Decimal
 
 class PortfolioService:
     @staticmethod
-    def add_transaction(portfolio, asset_symbol, transaction_type, quantity, price, timestamp):
+    def add_transaction(portfolio, asset_symbol, transaction_type, quantity, price, timestamp=None):
         if quantity <= Decimal('0'):
             raise ValidationError("Transaction quantity must be greater than zero")
         if price <= Decimal('0'):
@@ -54,7 +55,7 @@ class PortfolioService:
                 transaction_type=transaction_type,
                 quantity=quantity,
                 price=price,
-                timestamp=timestamp
+                timestamp=timestamp or timezone.now()
             )
 
             return transaction, asset

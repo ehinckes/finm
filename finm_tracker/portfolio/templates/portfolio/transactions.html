@@ -1,0 +1,36 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Transactions - Financial Portfolio Tracker{% endblock %}
+
+{% block content %}
+<h2>Your Transactions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Asset</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ transaction.asset_symbol }}</td>
+            <td>{{ transaction.transaction_type }}</td>
+            <td>{{ transaction.quantity }}</td>
+            <td>${{ transaction.price }}</td>
+            <td>${{ transaction.total_value }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No transactions found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'add_transaction' %}" class="btn btn-primary">Add Transaction</a>
+{% endblock %}

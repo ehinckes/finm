@@ -1,0 +1,34 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Assets - Financial Portfolio Tracker{% endblock %}
+
+{% block content %}
+<h2>Your Assets</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Current Price</th>
+            <th>Total Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for asset in assets %}
+        <tr>
+            <td>{{ asset.symbol }}</td>
+            <td>{{ asset.name }}</td>
+            <td>{{ asset.quantity }}</td>
+            <td>${{ asset.current_price }}</td>
+            <td>${{ asset.total_value }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No assets found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'add_transaction' %}" class="btn btn-primary">Add Transaction</a>
+{% endblock %}
