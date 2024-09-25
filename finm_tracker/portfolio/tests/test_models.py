@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import Portfolio, Asset, Transaction
+from ..models import Portfolio, Asset, Transaction
 from decimal import Decimal
 from django.utils import timezone
 

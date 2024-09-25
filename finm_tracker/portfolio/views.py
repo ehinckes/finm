@@ -5,9 +5,8 @@ from .models import Portfolio, Asset, Transaction
 from .serializers import PortfolioSerializer, AssetSerializer, TransactionSerializer
 from django.shortcuts import get_object_or_404
 from .services.portfolio_services import PortfolioService
-from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-
 
 class PortfolioViewSet(viewsets.ModelViewSet):
     serializer_class = PortfolioSerializer
@@ -17,6 +16,9 @@ class PortfolioViewSet(viewsets.ModelViewSet):
         return Portfolio.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Check if a portfolio already exists for this user
+        if Portfolio.objects.filter(user=self.request.user).exists():
+            raise serializers.ValidationError("A portfolio already exists for this user.")
         serializer.save(user=self.request.user)
 
 class AssetViewSet(viewsets.ModelViewSet):
@@ -47,7 +49,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 transaction_type=serializer.validated_data['transaction_type'],
                 quantity=serializer.validated_data['quantity'],
                 price=serializer.validated_data['price'],
-                timestamp=timezone.now()  # Pass the timestamp to the service
+                timestamp=timezone.now()
             )
             serializer.instance = transaction
             serializer.save(portfolio=portfolio, timestamp=transaction.timestamp)

@@ -1,10 +1,17 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction as db_transaction
 from ..models import Asset, Transaction
+from decimal import Decimal
 
 class PortfolioService:
     @staticmethod
     def add_transaction(portfolio, asset_symbol, transaction_type, quantity, price, timestamp):
-        with transaction.atomic():
+        if quantity <= Decimal('0'):
+            raise ValidationError("Transaction quantity must be greater than zero")
+        if price <= Decimal('0'):
+            raise ValidationError("Transaction price must be greater than zero")
+
+        with db_transaction.atomic():
             # Check if the asset exists in the user's portfolio
             asset = Asset.objects.filter(portfolio=portfolio, symbol=asset_symbol).first()
 
