@@ -1,28 +1,35 @@
-from rest_framework import status
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
-from portfolio.models import Portfolio
 
-@api_view(['POST'])
-def register_user(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        Portfolio.objects.create(user=user)  # Create a portfolio for the new user
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+User = get_user_model()
 
-@api_view(['GET', 'PUT'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    if request.method == 'GET':
-        serializer = UserSerializer(request.user)
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return User.objects.filter(id=self.request.user.id)
+        return User.objects.all()
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-    elif request.method == 'PUT':
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        user.set_password(serializer.validated_data['password'])
+        user.save()
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

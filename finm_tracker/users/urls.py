@@ -1,9 +1,10 @@
-from django.urls import path
-from rest_framework.authtoken.views import obtain_auth_token
-from .views import register_user, user_profile
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserViewSet
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    path('token/', obtain_auth_token, name='api_token_auth'),
-    path('register/', register_user, name='register'),
-    path('profile/', user_profile, name='profile'),
+    path('', include(router.urls)),
 ]
