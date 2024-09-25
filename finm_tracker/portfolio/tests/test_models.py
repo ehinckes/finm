@@ -13,19 +13,19 @@ class PortfolioModelTest(TestCase):
         self.user = User.objects.create_user(username='testuser', password='testpass123')
 
     def test_portfolio_creation(self):
-        portfolio = Portfolio.objects.create(user=self.user)
+        portfolio = self.user.portfolio
+        self.assertIsNotNone(portfolio)
         self.assertEqual(portfolio.user, self.user)
         self.assertEqual(str(portfolio), "testuser's Portfolio")
 
     def test_one_to_one_relationship(self):
-        Portfolio.objects.create(user=self.user)
         with self.assertRaises(IntegrityError):
             Portfolio.objects.create(user=self.user)
 
 class AssetModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass123')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
 
     def test_asset_creation(self):
         asset = Asset.objects.create(
@@ -89,7 +89,7 @@ class AssetModelTest(TestCase):
 class TransactionModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass123')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
 
     def test_transaction_creation(self):
         transaction = Transaction.objects.create(

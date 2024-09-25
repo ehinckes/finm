@@ -12,7 +12,7 @@ User = get_user_model()
 class PortfolioServiceTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
 
     def test_add_buy_transaction_new_asset(self):
         transaction, asset = PortfolioService.add_transaction(

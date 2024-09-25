@@ -1,34 +1,36 @@
-{% extends 'portfolio/base.html' %}
+{% extends "portfolio/base.html" %}
 
 {% block title %}Assets - Financial Portfolio Tracker{% endblock %}
 
 {% block content %}
-<h2>Your Assets</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Symbol</th>
-            <th>Name</th>
-            <th>Quantity</th>
-            <th>Current Price</th>
-            <th>Total Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for asset in assets %}
-        <tr>
-            <td>{{ asset.symbol }}</td>
-            <td>{{ asset.name }}</td>
-            <td>{{ asset.quantity }}</td>
-            <td>${{ asset.current_price }}</td>
-            <td>${{ asset.total_value }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">No assets found</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'add_transaction' %}" class="btn btn-primary">Add Transaction</a>
+<h1 class="text-3xl font-bold mb-6">Your Assets</h1>
+
+<div class="bg-white p-6 rounded shadow">
+    <table class="w-full">
+        <thead>
+            <tr>
+                <th class="text-left">Symbol</th>
+                <th class="text-left">Name</th>
+                <th class="text-left">Type</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Current Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for asset in assets %}
+                <tr>
+                    <td>{{ asset.symbol }}</td>
+                    <td>{{ asset.name }}</td>
+                    <td>{{ asset.get_asset_type_display }}</td>
+                    <td class="text-right">{{ asset.quantity }}</td>
+                    <td class="text-right">${{ asset.current_price|default_if_none:"N/A" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No assets found</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

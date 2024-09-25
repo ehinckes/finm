@@ -10,7 +10,7 @@ User = get_user_model()
 class AssetSerializerTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
         self.asset_data = {
             'portfolio': self.portfolio,
             'symbol': 'AAPL',
@@ -37,7 +37,7 @@ class AssetSerializerTestCase(TestCase):
 class TransactionSerializerTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
         self.transaction_data = {
             'portfolio': self.portfolio,
             'asset_symbol': 'AAPL',
@@ -63,7 +63,7 @@ class TransactionSerializerTestCase(TestCase):
 class PortfolioSerializerTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
         self.asset = Asset.objects.create(
             portfolio=self.portfolio,
             symbol='AAPL',

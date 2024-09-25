@@ -16,21 +16,24 @@ class PortfolioViewSetTestCase(TestCase):
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
-    def test_create_first_portfolio(self):
-        url = reverse('portfolio-list')
-        data = {}  # No additional data needed as user is set automatically
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Portfolio.objects.count(), 1)
+    def test_portfolio_already_exists(self):
+        # Check that a portfolio already exists for the user
+        self.assertTrue(hasattr(self.user, 'portfolio'))
+        self.assertIsNotNone(self.user.portfolio)
 
     def test_create_duplicate_portfolio(self):
-        Portfolio.objects.create(user=self.user)
+        # Attempt to create a new portfolio
         url = reverse('portfolio-list')
-        data = {}
-        response = self.client.post(url, data)
+        response = self.client.post(url, {})
+        
+        # Check that the request was unsuccessful
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Verify the error message
         self.assertIn("A portfolio already exists for this user.", str(response.data))
-        self.assertEqual(Portfolio.objects.count(), 1)
+        
+        # Ensure only one portfolio exists for the user
+        self.assertEqual(Portfolio.objects.filter(user=self.user).count(), 1)
 
 class AssetViewSetTestCase(TestCase):
     def setUp(self):
@@ -38,7 +41,7 @@ class AssetViewSetTestCase(TestCase):
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
 
     def test_create_asset(self):
         url = reverse('asset-list')
@@ -59,7 +62,7 @@ class TransactionViewSetTestCase(APITestCase):
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        self.portfolio = Portfolio.objects.create(user=self.user)
+        self.portfolio = self.user.portfolio
         self.asset = Asset.objects.create(portfolio=self.portfolio, symbol='AAPL', name='Apple Inc.', asset_type='stock', quantity=100, current_price=150.00)
 
     def test_authentication_required(self):

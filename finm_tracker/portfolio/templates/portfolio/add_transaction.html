@@ -1,35 +1,38 @@
-{% extends 'portfolio/base.html' %}
+{% extends "portfolio/base.html" %}
 
 {% block title %}Add Transaction - Financial Portfolio Tracker{% endblock %}
 
 {% block content %}
-<h2>Add Transaction</h2>
-{% if error %}
-<div class="alert alert-danger" role="alert">
-    {{ error }}
+<h1 class="text-3xl font-bold mb-6">Add Transaction</h1>
+
+<div class="max-w-md mx-auto bg-white p-8 rounded shadow">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="asset_symbol" class="block text-gray-700 text-sm font-bold mb-2">Asset Symbol:</label>
+            <input type="text" name="asset_symbol" id="asset_symbol" required class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div class="mb-4">
+            <label for="transaction_type" class="block text-gray-700 text-sm font-bold mb-2">Transaction Type:</label>
+            <select name="transaction_type" id="transaction_type" required class="w-full px-3 py-2 border rounded-lg">
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label for="quantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+            <input type="number" name="quantity" id="quantity" step="0.000001" required class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div class="mb-4">
+            <label for="price" class="block text-gray-700 text-sm font-bold mb-2">Price:</label>
+            <input type="number" name="price" id="price" step="0.01" required class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        {% if error %}
+            <p class="text-red-500 mb-4">{{ error }}</p>
+        {% endif %}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            Add Transaction
+        </button>
+    </form>
 </div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="asset_symbol" class="form-label">Asset Symbol</label>
-        <input type="text" class="form-control" id="asset_symbol" name="asset_symbol" required>
-    </div>
-    <div class="mb-3">
-        <label for="transaction_type" class="form-label">Transaction Type</label>
-        <select class="form-select" id="transaction_type" name="transaction_type" required>
-            <option value="buy">Buy</option>
-            <option value="sell">Sell</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="quantity" class="form-label">Quantity</label>
-        <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required>
-    </div>
-    <div class="mb-3">
-        <label for="price" class="form-label">Price</label>
-        <input type="number" class="form-control" id="price" name="price" step="0.01" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Add Transaction</button>
-</form>
 {% endblock %}
