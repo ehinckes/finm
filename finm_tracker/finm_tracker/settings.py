@@ -40,8 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'portfolio',
+    'theme',
     'rest_framework',
     'rest_framework.authtoken',
+    'tailwind',
 ]
 
 MIDDLEWARE = [
@@ -151,3 +153,8 @@ AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_URL = '/api-auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+TAILWIND_APP_NAME = 'theme'
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "theme/static"]
