@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from decimal import Decimal, InvalidOperation
+from django.db.models import F, Sum
 
 
 
@@ -120,7 +121,27 @@ def logout_view(request):
 def assets_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
     assets = Asset.objects.filter(portfolio=portfolio)
-    context = {'assets': assets}
+
+    # Filtering
+    current_filter = request.GET.get('asset_type', 'all').lower()
+    if current_filter != 'all':
+        assets = assets.filter(asset_type=current_filter)
+
+    # Sorting
+    sort_by = request.GET.get('sort', 'symbol')
+    assets = assets.order_by(sort_by)
+
+    # Total value calculation
+    total_value = assets.aggregate(
+        total=Sum(F('quantity') * F('current_price'))
+    )['total'] or 0
+
+    context = {
+        'assets': assets,
+        'total_value': total_value,
+        'current_sort': sort_by,
+        'current_filter': current_filter,
+    }
     return render(request, 'portfolio/assets.html', context)
 
 @login_required

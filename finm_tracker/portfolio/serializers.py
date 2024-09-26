@@ -8,6 +8,11 @@ class AssetSerializer(serializers.ModelSerializer):
         fields = ['id', 'symbol', 'name', 'asset_type', 'quantity', 'current_price']
         read_only_fields = ['id']
 
+        def to_representation(self, instance):
+            representation = super().to_representation(instance)
+            representation['asset_type'] = instance.get_asset_type_display()
+            return representation
+
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction

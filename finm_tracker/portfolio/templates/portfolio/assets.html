@@ -1,34 +1,65 @@
 {% extends "portfolio/base.html" %}
+{% load static %}
+{% load custom_filters %}
 
 {% block title %}Assets - Financial Portfolio Tracker{% endblock %}
 
 {% block content %}
-<h1 class="custom-h1">Your Assets</h1>
+<h1 id="your-assets" class="custom-h1">Your Assets</h1>
+
+<div class="bg-white p-6 rounded shadow mb-6 flex justify-between items-center">
+    <div class="total-value">
+        Total Portfolio Value: <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
+    </div>
+
+    <div class="asset-type-filter">
+        <button id="filter-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Filter: All
+        </button>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var filterButton = document.getElementById('filter-button');
+                var filters = ['all', 'stock', 'crypto', 'commodity', 'bond'];
+                var currentFilter = '{{ current_filter }}';
+        
+                filterButton.addEventListener('click', function() {
+                    var currentIndex = filters.indexOf(currentFilter);
+                    var nextIndex = (currentIndex + 1) % filters.length;
+                    var nextFilter = filters[nextIndex];
+        
+                    var url = new URL(window.location);
+                    url.searchParams.set('asset_type', nextFilter);
+                    window.location.href = url.toString();
+                });
+            });
+        </script>
+    </div>
+</div>
 
 <div class="bg-white p-6 rounded shadow">
     <table class="w-full">
         <thead>
             <tr>
-                <th class="text-left">Symbol</th>
-                <th class="text-left">Name</th>
-                <th class="text-left">Type</th>
-                <th class="text-right">Quantity</th>
-                <th class="text-right">Current Price</th>
+                <th><a href="?sort=symbol&asset_type={{ current_filter }}">Symbol</a></th>
+                <th><a href="?sort=name&asset_type={{ current_filter }}">Name</a></th>
+                <th><a href="?sort=asset_type&asset_type={{ current_filter }}">Type</a></th>
+                <th><a href="?sort=quantity&asset_type={{ current_filter }}">Quantity</a></th>
+                <th><a href="?sort=current_price&asset_type={{ current_filter }}">Current Price</a></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="asset-table-body">
             {% for asset in assets %}
-                <tr>
-                    <td>{{ asset.symbol }}</td>
-                    <td>{{ asset.name }}</td>
-                    <td>{{ asset.get_asset_type_display }}</td>
-                    <td class="text-right">{{ asset.quantity }}</td>
-                    <td class="text-right">${{ asset.current_price|default_if_none:"N/A" }}</td>
-                </tr>
+            <tr>
+                <td>{{ asset.symbol }}</td>
+                <td>{{ asset.name }}</td>
+                <td>{{ asset.get_asset_type_display }}</td>
+                <td>{{ asset.quantity|display_decimal }}</td>
+                <td>${{ asset.current_price|default_if_none:"N/A"|floatformat:2 }}</td>
+            </tr>
             {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No assets found</td>
-                </tr>
+            <tr>
+                <td colspan="5">No assets found</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
