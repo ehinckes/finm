@@ -2,37 +2,19 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}Assets - Financial Portfolio Tracker{% endblock %}
+{% block title %}{{ asset_type_display }} - Financial Portfolio Tracker{% endblock %}
 
 {% block content %}
-<h1 id="your-assets" class="custom-h1">Your Assets</h1>
+<h1 class="custom-h1">Your {{ asset_type_display }}</h1>
 
 <div class="bg-white p-6 rounded shadow mb-6 flex justify-between items-center">
     <div class="total-value">
-        Total Portfolio Value: <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
+        Total {{ asset_type_display }} Value: <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
     </div>
-
     <div class="asset-type-filter">
-        <button id="filter-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Filter: All
+        <button id="filterButton" class="filter-button">
+            Filter: {{ button_text }}
         </button>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var filterButton = document.getElementById('filter-button');
-                var filters = ['all', 'stock', 'crypto', 'commodity', 'bond'];
-                var currentFilter = '{{ current_filter }}';
-        
-                filterButton.addEventListener('click', function() {
-                    var currentIndex = filters.indexOf(currentFilter);
-                    var nextIndex = (currentIndex + 1) % filters.length;
-                    var nextFilter = filters[nextIndex];
-        
-                    var url = new URL(window.location);
-                    url.searchParams.set('asset_type', nextFilter);
-                    window.location.href = url.toString();
-                });
-            });
-        </script>
     </div>
 </div>
 
@@ -47,7 +29,7 @@
                 <th><a href="?sort=current_price&asset_type={{ current_filter }}">Current Price</a></th>
             </tr>
         </thead>
-        <tbody id="asset-table-body">
+        <tbody>
             {% for asset in assets %}
             <tr>
                 <td>{{ asset.symbol }}</td>
@@ -64,4 +46,19 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    document.getElementById('filterButton').addEventListener('click', function() {
+        const assetTypes = ['all', 'stock', 'crypto', 'commodity'];
+        const currentFilter = '{{ current_filter }}';
+        const currentIndex = assetTypes.indexOf(currentFilter);
+        const nextIndex = (currentIndex + 1) % assetTypes.length;
+        const nextFilter = assetTypes[nextIndex];
+        
+        // Update the URL and reload the page
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('asset_type', nextFilter);
+        window.location.href = currentUrl.toString();
+    });
+</script>
 {% endblock %}
