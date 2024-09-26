@@ -7,6 +7,9 @@ from decimal import Decimal
 class PortfolioService:
     @staticmethod
     def add_transaction(portfolio, asset_symbol, transaction_type, quantity, price, timestamp=None):
+        quantity = Decimal(str(quantity))
+        price = Decimal(str(price))
+
         if quantity <= Decimal('0'):
             raise ValidationError("Transaction quantity must be greater than zero")
         if price <= Decimal('0'):
@@ -21,12 +24,10 @@ class PortfolioService:
                     raise ValidationError("Cannot sell an asset that is not in the portfolio")
                 if asset.quantity < quantity:
                     raise ValidationError("Insufficient asset quantity for sale")
-                
                 # Proceed with the sell transaction
                 asset.quantity -= quantity
                 asset.current_price = price  # Update the current price
                 asset.save()
-
             elif transaction_type == 'buy':
                 if not asset:
                     # Asset doesn't exist, fetch info from external API and create new asset
@@ -44,7 +45,6 @@ class PortfolioService:
                     asset.quantity += quantity
                     asset.current_price = price  # Update the current price
                     asset.save()
-
             else:
                 raise ValidationError("Invalid transaction type")
 
@@ -58,7 +58,7 @@ class PortfolioService:
                 timestamp=timestamp or timezone.now()
             )
 
-            return transaction, asset
+        return transaction, asset
 
     @staticmethod
     def fetch_asset_info(asset_symbol):

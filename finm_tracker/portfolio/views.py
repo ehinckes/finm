@@ -10,6 +10,8 @@ from .services.portfolio_services import PortfolioService
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from decimal import Decimal, InvalidOperation
+
 
 
 class PortfolioViewSet(viewsets.ModelViewSet):
@@ -137,12 +139,12 @@ def add_transaction_view(request):
                 portfolio=portfolio,
                 asset_symbol=request.POST['asset_symbol'],
                 transaction_type=request.POST['transaction_type'],
-                quantity=float(request.POST['quantity']),
-                price=float(request.POST['price']),
+                quantity=Decimal(request.POST['quantity']),
+                price=Decimal(request.POST['price']),
                 timestamp=timezone.now()
             )
             return redirect('transactions')
-        except ValidationError as e:
+        except (ValidationError, InvalidOperation) as e:
             error_message = str(e)
             return render(request, 'portfolio/add_transaction.html', {'error': error_message})
     return render(request, 'portfolio/add_transaction.html')
