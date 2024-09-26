@@ -1,42 +1,43 @@
 {% extends "portfolio/base.html" %}
-
+{% load custom_filters %}
 {% block title %}Transactions - Financial Portfolio Tracker{% endblock %}
-
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">Your Transactions</h1>
-
-<div class="mb-4">
-    <a href="{% url 'add_transaction' %}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
-        Add Transaction
-    </a>
-</div>
-
-<div class="bg-white p-6 rounded shadow">
-    <table class="w-full">
-        <thead>
-            <tr>
-                <th class="text-left">Asset</th>
-                <th class="text-left">Type</th>
-                <th class="text-right">Quantity</th>
-                <th class="text-right">Price</th>
-                <th class="text-left">Timestamp</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.asset_symbol }}</td>
-                    <td>{{ transaction.get_transaction_type_display }}</td>
-                    <td class="text-right">{{ transaction.quantity }}</td>
-                    <td class="text-right">${{ transaction.price }}</td>
-                    <td>{{ transaction.timestamp }}</td>
+<div class="transactions-container">
+    <h1 class="custom-h1">Your Transactions</h1>
+    <div class="mb-4">
+        <a href="{% url 'add_transaction' %}" class="custom-button">
+            Add Transaction
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-xs">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Asset</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Type</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Quantity</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Price</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Total</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Timestamp</th>
                 </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No transactions found</td>
+            </thead>
+            <tbody>
+                {% for transaction in transactions|dictsortreversed:"timestamp" %}
+                <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                    <td class="border border-gray-300 p-2">{{ transaction.asset_symbol }}</td>
+                    <td class="border border-gray-300 p-2">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="border border-gray-300 p-2">{{ transaction.quantity|display_decimal }}</td>
+                    <td class="border border-gray-300 p-2">${{ transaction.price|floatformat:2 }}</td>
+                    <td class="border border-gray-300 p-2">${{ transaction.quantity|multiply:transaction.price|floatformat:2 }}</td>
+                    <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="border border-gray-300 p-2 text-center">No transactions found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

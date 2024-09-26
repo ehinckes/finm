@@ -9,8 +9,6 @@
 @layer components {
 
 
-
-
     .custom-nav {
         @apply bg-gradient-to-r from-custom-green-full to-custom-green-dark p-4 text-white;
     }
@@ -80,10 +78,15 @@
 
 
 
+    .transactions-container {
+        @apply container mx-auto px-4;
+    }
 
+    .custom-button {
+        @apply bg-custom-green-full hover:bg-custom-green-dark text-white font-bold py-2 px-4 rounded inline-block transition duration-300;
+    }
 
-
-
-    
-
+    .custom-h1 {
+        @apply text-3xl font-bold mb-6;
+    }
 }

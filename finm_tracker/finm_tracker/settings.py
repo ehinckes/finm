@@ -156,5 +156,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 TAILWIND_APP_NAME = 'theme'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "theme/static"]
