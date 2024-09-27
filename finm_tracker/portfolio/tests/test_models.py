@@ -39,8 +39,8 @@ class AssetModelTest(TestCase):
         self.assertEqual(asset.symbol, 'AAPL')
         self.assertEqual(asset.name, 'Apple Inc.')
         self.assertEqual(asset.asset_type, 'stock')
-        self.assertEqual(asset.quantity, Decimal('10'))
-        self.assertEqual(asset.current_price, Decimal('150.00'))
+        self.assertEqual(asset.position, Decimal('10'))
+        self.assertEqual(asset.last_price, Decimal('150.00'))
         self.assertEqual(str(asset), 'AAPL - Apple Inc. (10)')
 
     def test_negative_quantity_validation(self):

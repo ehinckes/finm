@@ -13,23 +13,23 @@
         <table class="w-full border-collapse text-xs">
             <thead>
                 <tr class="bg-gray-100">
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Timestamp</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Asset</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Type</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Quantity</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Price</th>
-                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Total</th>
-                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Timestamp</th>
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Total</th> 
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions|dictsortreversed:"timestamp" %}
                 <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                    <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
                     <td class="border border-gray-300 p-2">{{ transaction.asset_symbol }}</td>
                     <td class="border border-gray-300 p-2">{{ transaction.get_transaction_type_display }}</td>
                     <td class="border border-gray-300 p-2">{{ transaction.quantity|display_decimal }}</td>
                     <td class="border border-gray-300 p-2">${{ transaction.price|floatformat:2 }}</td>
-                    <td class="border border-gray-300 p-2">${{ transaction.current_value|floatformat:2 }}</td>
-                    <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
+                    <td class="border border-gray-300 p-2">${{ transaction.transaction_value|floatformat:2 }}</td>
                 </tr>
                 {% empty %}
                 <tr>

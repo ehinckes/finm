@@ -17,6 +17,17 @@ class PortfolioService:
             raise ValidationError("Transaction price must be greater than zero")
         if timestamp > timezone.now():
             raise ValidationError("Transaction timestamp cannot be in the future")
+        
+        if asset_type == 'stock_us':
+            pass
+        elif asset_type == 'stock_au':
+            if not asset_symbol.endswith(".AX"):
+                asset_symbol += ".AX"
+        elif asset_type == 'crypto':
+            if not asset_symbol.endswith("-USD"):
+                asset_symbol += "-USD"
+        else:
+            raise ValueError("Invalid asset type")
 
         with db_transaction.atomic():
             
@@ -24,14 +35,14 @@ class PortfolioService:
             asset = Asset.objects.filter(portfolio=portfolio, symbol=asset_symbol).first()
             if asset:
                 if transaction_type == 'sell':
-                    if asset.quantity < quantity:
+                    if asset.position < quantity:
                         raise ValidationError("Insufficient asset quantity for sale")
                     # Proceed with the sell transaction
-                    asset.quantity -= quantity
+                    asset.position -= quantity
                     asset.save()
                 elif transaction_type == 'buy':
                     # Proceed with buy transaction
-                    asset.quantity += quantity
+                    asset.position += quantity
                     asset.save()
                 else:
                     raise ValidationError("Invalid transaction type")
@@ -49,8 +60,8 @@ class PortfolioService:
                         symbol=asset_symbol,
                         name=asset_info['name'],
                         asset_type=asset_type,
-                        quantity=quantity,
-                        current_price=asset_info['current_price']
+                        position=quantity,
+                        last_price=asset_info['last_price']
                     )
 
                 else:

@@ -26,7 +26,7 @@ class ExternalAPIService:
 
             return {
                 'name': info.get('longName', asset_symbol),
-                'current_price': Decimal(str(info.get('bid', 0)))
+                'last_price': Decimal(str(info.get('bid', 0)))
             }
         
         except Exception as e:
@@ -36,11 +36,34 @@ class ExternalAPIService:
 
     @staticmethod
     def _fetch_au_stock_info(asset_symbol):
-        pass
+        try:
+            ticker = yf.Ticker(asset_symbol)
+            info = ticker.info
+
+            return {
+                'name': info.get('longName', asset_symbol),
+                'last_price': Decimal(str(info.get('bid', 0)))
+            }
+        
+        except Exception as e:
+            print(f"Error fetching asset info for {asset_symbol}: {e}")
+            raise ValueError(f"Unable to fetch info for asset {asset_symbol}")
+        
 
 
     @staticmethod
     def _fetch_crypto_info(asset_symbol):
-        pass
         
+        try:
+            ticker = yf.Ticker(asset_symbol)
+            info = ticker.info
+
+            return {
+                'name': info.get('name', asset_symbol),
+                'last_price': Decimal(str(info.get('open', 0))) # Using open price as current price for crypto
+            }
+        
+        except Exception as e:
+            print(f"Error fetching asset info for {asset_symbol}: {e}")
+            raise ValueError(f"Unable to fetch info for asset {asset_symbol}")
         

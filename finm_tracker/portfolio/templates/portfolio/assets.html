@@ -35,9 +35,10 @@
                 <th><a href="?sort=symbol&asset_type={{ current_filter }}">Symbol</a></th>
                 <th><a href="?sort=name&asset_type={{ current_filter }}">Name</a></th>
                 <th><a href="?sort=asset_type&asset_type={{ current_filter }}">Type</a></th>
-                <th><a href="?sort=quantity&asset_type={{ current_filter }}">Quantity</a></th>
-                <th><a href="?sort=current_price&asset_type={{ current_filter }}">Current Price</a></th>
-                <th><a href="?sort=current_value&asset_type={{ current_filter }}">Current Value</a></th>
+                <th><a href="?sort=position&asset_type={{ current_filter }}">Position</a></th>
+                <th><a href="?sort=last_price&asset_type={{ current_filter }}">Last Price</a></th>
+                <th><a href="?sort=market_value&asset_type={{ current_filter }}">Market Value</a></th>
+                <th><a href="?sort=cost_of_goods&asset_type={{ current_filter }}">Cost</a></th>
                 <th><a href="?sort=profit_loss&asset_type={{ current_filter }}">Profit/Loss</a></th>
             </tr>
         </thead>
@@ -47,9 +48,10 @@
                 <td class="border px-4 py-2">{{ asset.symbol }}</td>
                 <td class="border px-4 py-2">{{ asset.name }}</td>
                 <td class="border px-4 py-2">{{ asset.get_asset_type_display }}</td>
-                <td class="border px-4 py-2 text-right">{{ asset.quantity|display_decimal }}</td>
-                <td class="border px-4 py-2 text-right">${{ asset.current_price|default_if_none:"N/A"|floatformat:2 }}</td>
-                <td class="border px-4 py-2 text-right">${{ asset.current_value|floatformat:2 }}</td>
+                <td class="border px-4 py-2 text-right">{{ asset.position|display_decimal }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.last_price|default_if_none:"N/A"|floatformat:2 }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.market_value|floatformat:2 }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.cost_of_goods|floatformat:2 }}</td>
                 <td {{ asset.profit_loss|profit_loss_color }} class="border px-4 py-2 text-right font-semibold">
                     ${{ asset.profit_loss|floatformat:2 }}
                 </td>

@@ -136,7 +136,7 @@ def assets_view(request):
     assets = assets.order_by(sort_by)
 
     # Total value calculation
-    total_value = sum(asset.current_value for asset in assets)
+    total_value = sum(asset.market_value for asset in assets)
 
     # Total profit loss calculation
     total_profit_loss = sum(asset.profit_loss for asset in assets)
@@ -145,7 +145,7 @@ def assets_view(request):
     asset_type_display_map = {
         'all': 'Assets',
         'stock_us': 'US Stock Assets',
-        'stock_au': 'Aus Stock Assets',
+        'stock_au': 'AUS Stock Assets',
         'crypto': 'Crypto Assets',
     }
     asset_type_display = asset_type_display_map[current_filter]

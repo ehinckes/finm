@@ -52,7 +52,7 @@ class AssetViewSetTestCase(TestCase):
         asset = Asset.objects.first()
         self.assertEqual(asset.symbol, 'AAPL')
         self.assertEqual(asset.name, 'Apple Inc.')
-        self.assertEqual(asset.quantity, 10)
+        self.assertEqual(asset.position, 10)
         self.assertEqual(asset.asset_type, 'stock')
         self.assertEqual(asset.portfolio, self.portfolio)
 

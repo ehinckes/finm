@@ -24,7 +24,7 @@ class PortfolioAdmin(admin.ModelAdmin):
 
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
-    list_display = ('symbol', 'name', 'asset_type', 'quantity', 'current_price', 'portfolio')
+    list_display = ('symbol', 'name', 'asset_type', 'position', 'last_price', 'portfolio')
     list_filter = ('asset_type', 'portfolio')
     search_fields = ('symbol', 'name')
 
