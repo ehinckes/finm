@@ -27,11 +27,9 @@ class Portfolio(models.Model):
 
 class Asset(models.Model):
     ASSET_TYPES = [
-        ('stock', 'Stock'),
+        ('stock_us', 'US Stock'),
+        ('stock_au', 'Aus Stock'),
         ('crypto', 'Cryptocurrency'),
-        ('commodity', 'Commodity'),
-        ('forex', 'Forex'),
-        ('bond', 'Bond'),
     ]
 
     portfolio = models.ForeignKey(Portfolio, related_name='assets', on_delete=models.CASCADE)
@@ -61,10 +59,18 @@ class Asset(models.Model):
     
     @property
     def profit_loss(self):
-        transactions_cost = sum(
-            transaction.current_value for transaction in self.portfolio.transactions.filter(asset_symbol=self.symbol)
+        buy_transactions_cost = sum(
+            transaction.current_value for transaction in self.portfolio.transactions.filter(
+                asset_symbol=self.symbol, transaction_type='buy'
+            )
         )
-        return self.current_value - transactions_cost
+        sell_transactions_value = sum(
+            transaction.current_value for transaction in self.portfolio.transactions.filter(
+                asset_symbol=self.symbol, transaction_type='sell'
+            )
+        )
+        return self.current_value - (buy_transactions_cost - sell_transactions_value)
+
 
 
 class Transaction(models.Model):

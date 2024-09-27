@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from decimal import Decimal, InvalidOperation
-from django.db.models import F, Sum
+
 
 
 
@@ -40,7 +40,6 @@ class AssetViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         portfolio = get_object_or_404(Portfolio, user=self.request.user)
         serializer.save(portfolio=portfolio)
-
 
 class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
@@ -77,6 +76,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             timestamp=serializer.validated_data.get('timestamp')
         )
         serializer.instance = transaction
+
 
 @login_required
 def home_view(request):
@@ -123,7 +123,7 @@ def assets_view(request):
     assets = Asset.objects.filter(portfolio=portfolio)
 
     # Filtering
-    asset_types = ['all', 'stock', 'crypto', 'commodity']
+    asset_types = ['all', 'stock_us', 'stock_au', 'crypto']
     current_filter = request.GET.get('asset_type', 'all').lower()
     if current_filter not in asset_types:
         current_filter = 'all'
@@ -144,9 +144,9 @@ def assets_view(request):
     # Determine display text for asset type and filter
     asset_type_display_map = {
         'all': 'Assets',
-        'stock': 'Stock Assets',
+        'stock_us': 'US Stock Assets',
+        'stock_au': 'Aus Stock Assets',
         'crypto': 'Crypto Assets',
-        'commodity': 'Commodity Assets',
     }
     asset_type_display = asset_type_display_map[current_filter]
     
@@ -175,13 +175,23 @@ def add_transaction_view(request):
     if request.method == 'POST':
         portfolio = get_object_or_404(Portfolio, user=request.user)
         try:
+            use_current_time = request.POST.get('use_current_time') == 'on'
+            if use_current_time:
+                timestamp = timezone.now()
+            else:
+                custom_timestamp = request.POST.get('custom_timestamp')
+                if custom_timestamp:
+                    timestamp = timezone.make_aware(timezone.datetime.strptime(custom_timestamp, '%Y-%m-%dT%H:%M'))
+                else:
+                    raise ValidationError("Custom timestamp is required when not using current time.")
             transaction, asset = PortfolioService.add_transaction(
                 portfolio=portfolio,
-                asset_symbol=request.POST['asset_symbol'],
+                asset_symbol=request.POST['asset_symbol'].upper(),
+                asset_type=request.POST['asset_type'],
                 transaction_type=request.POST['transaction_type'],
                 quantity=Decimal(request.POST['quantity']),
                 price=Decimal(request.POST['price']),
-                timestamp=timezone.now()
+                timestamp=timestamp
             )
             return redirect('transactions')
         except (ValidationError, InvalidOperation) as e:

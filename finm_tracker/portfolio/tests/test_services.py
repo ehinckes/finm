@@ -128,11 +128,6 @@ class PortfolioServiceTestCase(TestCase):
         
         self.assertIn("Invalid transaction type", str(context.exception))
 
-    def test_fetch_asset_info(self):
-        asset_info = PortfolioService.fetch_asset_info('AAPL')
-        self.assertEqual(asset_info['name'], 'Asset AAPL')
-        self.assertEqual(asset_info['asset_type'], 'stock')
-
     def test_buy_zero_quantity(self):
         with self.assertRaises(ValidationError) as context:
             PortfolioService.add_transaction(

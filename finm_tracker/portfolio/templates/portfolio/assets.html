@@ -65,7 +65,7 @@
 
 <script>
     document.getElementById('filterButton').addEventListener('click', function() {
-        const assetTypes = ['all', 'stock', 'crypto', 'commodity'];
+        const assetTypes = ['all', 'stock_us', 'stock_au', 'crypto'];
         const currentFilter = '{{ current_filter }}';
         const currentIndex = assetTypes.indexOf(currentFilter);
         const nextIndex = (currentIndex + 1) % assetTypes.length;
