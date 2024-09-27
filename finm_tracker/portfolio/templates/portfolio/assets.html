@@ -9,36 +9,35 @@
 
 <div class="bg-white p-6 rounded shadow mb-6 flex justify-between items-center">
     <div class="total-value flex flex-col">
-        <div class="mb-2">
-            Total {{ asset_type_display }} Value: 
-            <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
-        </div>
-        <div>
-            Total {{ asset_type_display }} Profit/Loss: 
-            <span id="portfolio-profit-loss" class="font-bold">
-                ${{ total_profit_loss|floatformat:2 }}
-            </span>
-        </div>
+      <div class="mb-2">
+        Total {{ asset_type_display }} Value:
+        <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
+      </div>
+      <div>
+        Total {{ asset_type_display }} Profit/Loss:
+        <span id="portfolio-profit-loss" class="font-bold" {{ total_profit_loss|profit_loss_color }}>
+          ${{ total_profit_loss|floatformat:2 }}
+        </span>
+      </div>
     </div>
-    
     <div class="asset-type-filter">
-        <button id="filterButton" class="filter-button">
-            Filter: {{ button_text }}
-        </button>
+      <button id="filterButton" class="filter-button">
+        Filter: {{ button_text }}
+      </button>
     </div>
-</div>
+  </div>
 
 <div class="bg-white p-6 rounded shadow overflow-x-auto">
     <table class="w-full border-collapse">
         <thead>
-            <tr class="bg-gray-100">
+            <tr class="bg-gray-100 borde">
                 <th><a href="?sort=symbol&asset_type={{ current_filter }}">Symbol</a></th>
                 <th><a href="?sort=name&asset_type={{ current_filter }}">Name</a></th>
                 <th><a href="?sort=asset_type&asset_type={{ current_filter }}">Type</a></th>
                 <th><a href="?sort=position&asset_type={{ current_filter }}">Position</a></th>
+                <th><a href="?sort=average_cost&asset_type={{ current_filter }}">Average Cost</a></th>
                 <th><a href="?sort=last_price&asset_type={{ current_filter }}">Last Price</a></th>
                 <th><a href="?sort=market_value&asset_type={{ current_filter }}">Market Value</a></th>
-                <th><a href="?sort=cost_of_goods&asset_type={{ current_filter }}">Cost</a></th>
                 <th><a href="?sort=profit_loss&asset_type={{ current_filter }}">Profit/Loss</a></th>
             </tr>
         </thead>
@@ -49,9 +48,9 @@
                 <td class="border px-4 py-2">{{ asset.name }}</td>
                 <td class="border px-4 py-2">{{ asset.get_asset_type_display }}</td>
                 <td class="border px-4 py-2 text-right">{{ asset.position|display_decimal }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.average_cost|floatformat:2 }}</td>
                 <td class="border px-4 py-2 text-right">${{ asset.last_price|default_if_none:"N/A"|floatformat:2 }}</td>
                 <td class="border px-4 py-2 text-right">${{ asset.market_value|floatformat:2 }}</td>
-                <td class="border px-4 py-2 text-right">${{ asset.cost_of_goods|floatformat:2 }}</td>
                 <td {{ asset.profit_loss|profit_loss_color }} class="border px-4 py-2 text-right font-semibold">
                     ${{ asset.profit_loss|floatformat:2 }}
                 </td>

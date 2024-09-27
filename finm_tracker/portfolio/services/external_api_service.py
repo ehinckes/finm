@@ -1,9 +1,9 @@
 import yfinance as yf
+from yahoo_fin import stock_info
 from datetime import datetime
 from django.core.cache import cache
 from django.utils import timezone
 from decimal import Decimal
-
 
 class ExternalAPIService:
     @staticmethod
@@ -67,3 +67,5 @@ class ExternalAPIService:
             print(f"Error fetching asset info for {asset_symbol}: {e}")
             raise ValueError(f"Unable to fetch info for asset {asset_symbol}")
         
+
+

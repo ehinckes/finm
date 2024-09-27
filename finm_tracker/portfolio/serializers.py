@@ -3,14 +3,15 @@ from .models import Portfolio, Asset, Transaction
 from users.serializers import UserSerializer
 
 class AssetSerializer(serializers.ModelSerializer):
-    cost_of_goods= serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    average_cost = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     market_value = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     profit_loss = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
     class Meta:
         model = Asset
-        fields = ['id', 'symbol', 'name', 'asset_type', 'quantity', 'last_price', 'market_value', 'profit_loss', 'cost_of_goods']
-        read_only_fields = ['id', 'cost_price', 'value', 'profit_loss']
+        fields = ['id', 'symbol', 'name', 'asset_type', 'quantity', 'last_price', 'market_value', 'profit_loss', 'total_cost', 'average_cost']
+        read_only_fields = ['id', 'average_cost', 'total_cost', 'market_value', 'profit_loss']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -23,7 +24,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['id', 'asset_symbol', 'transaction_type', 'quantity', 'price', 'timestamp', 'transaction_value']
-        read_only_fields = ['id', 'timestamp', 'value']
+        read_only_fields = ['id', 'timestamp', 'transaction_value']
 
 class PortfolioSerializer(serializers.ModelSerializer):
     assets = AssetSerializer(many=True, read_only=True)

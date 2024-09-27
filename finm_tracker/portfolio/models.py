@@ -52,7 +52,7 @@ class Asset(models.Model):
         return Decimal('0.00')
     
     @property
-    def cost_of_goods(self):
+    def total_cost(self):
         buy_transactions_cost = sum(
             transaction.transaction_value for transaction in self.portfolio.transactions.filter(
                 asset_symbol=self.symbol, transaction_type='buy'
@@ -66,8 +66,12 @@ class Asset(models.Model):
         return buy_transactions_cost - sell_transactions_value
     
     @property
+    def average_cost(self):
+        return self.total_cost / self.position if self.position > 0 else Decimal('0.00')
+    
+    @property
     def profit_loss(self):
-        return self.market_value - self.cost_of_goods
+        return self.market_value - self.total_cost
 
 
 
