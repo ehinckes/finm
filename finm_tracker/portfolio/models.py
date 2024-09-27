@@ -2,12 +2,27 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from decimal import Decimal
 
 class Portfolio(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.user.username}'s Portfolio"
+    
+    @property
+    def assets_value(self):
+        return sum(asset.current_value for asset in self.assets.all())
+
+    @property
+    def assets_cost(self):
+        buy_transactions = self.transactions.filter(transaction_type='buy')
+        sell_transactions = self.transactions.filter(transaction_type='sell')
+        
+        total_buy = sum(transaction.current_value for transaction in buy_transactions)
+        total_sell = sum(transaction.current_value for transaction in sell_transactions)
+        
+        return total_buy - total_sell
 
 
 class Asset(models.Model):
@@ -37,6 +52,19 @@ class Asset(models.Model):
             raise ValidationError("Asset quantity cannot be negative.")
         if self.current_price < 0:
             raise ValidationError("Asset price cannot be negative.")
+        
+    @property
+    def current_value(self):
+        if self.current_price is not None:
+            return self.quantity * self.current_price
+        return Decimal('0.00')
+    
+    @property
+    def profit_loss(self):
+        transactions_cost = sum(
+            transaction.current_value for transaction in self.portfolio.transactions.filter(asset_symbol=self.symbol)
+        )
+        return self.current_value - transactions_cost
 
 
 class Transaction(models.Model):
@@ -63,3 +91,7 @@ class Transaction(models.Model):
             raise ValidationError("Transaction quantity cannot be negative.")
         if self.price < 0:
             raise ValidationError("Transaction price cannot be negative.")
+        
+    @property
+    def current_value(self):
+        return self.quantity * self.price

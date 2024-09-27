@@ -8,9 +8,19 @@
 <h1 class="custom-h1">Your {{ asset_type_display }}</h1>
 
 <div class="bg-white p-6 rounded shadow mb-6 flex justify-between items-center">
-    <div class="total-value">
-        Total {{ asset_type_display }} Value: <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
+    <div class="total-value flex flex-col">
+        <div class="mb-2">
+            Total {{ asset_type_display }} Value: 
+            <span id="portfolio-value" class="font-bold">${{ total_value|floatformat:2 }}</span>
+        </div>
+        <div>
+            Total {{ asset_type_display }} Profit/Loss: 
+            <span id="portfolio-profit-loss" class="font-bold">
+                ${{ total_profit_loss|floatformat:2 }}
+            </span>
+        </div>
     </div>
+    
     <div class="asset-type-filter">
         <button id="filterButton" class="filter-button">
             Filter: {{ button_text }}
@@ -18,29 +28,35 @@
     </div>
 </div>
 
-<div class="bg-white p-6 rounded shadow">
-    <table class="w-full">
+<div class="bg-white p-6 rounded shadow overflow-x-auto">
+    <table class="w-full border-collapse">
         <thead>
-            <tr>
+            <tr class="bg-gray-100">
                 <th><a href="?sort=symbol&asset_type={{ current_filter }}">Symbol</a></th>
                 <th><a href="?sort=name&asset_type={{ current_filter }}">Name</a></th>
                 <th><a href="?sort=asset_type&asset_type={{ current_filter }}">Type</a></th>
                 <th><a href="?sort=quantity&asset_type={{ current_filter }}">Quantity</a></th>
                 <th><a href="?sort=current_price&asset_type={{ current_filter }}">Current Price</a></th>
+                <th><a href="?sort=current_value&asset_type={{ current_filter }}">Current Value</a></th>
+                <th><a href="?sort=profit_loss&asset_type={{ current_filter }}">Profit/Loss</a></th>
             </tr>
         </thead>
         <tbody>
             {% for asset in assets %}
             <tr>
-                <td>{{ asset.symbol }}</td>
-                <td>{{ asset.name }}</td>
-                <td>{{ asset.get_asset_type_display }}</td>
-                <td>{{ asset.quantity|display_decimal }}</td>
-                <td>${{ asset.current_price|default_if_none:"N/A"|floatformat:2 }}</td>
+                <td class="border px-4 py-2">{{ asset.symbol }}</td>
+                <td class="border px-4 py-2">{{ asset.name }}</td>
+                <td class="border px-4 py-2">{{ asset.get_asset_type_display }}</td>
+                <td class="border px-4 py-2 text-right">{{ asset.quantity|display_decimal }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.current_price|default_if_none:"N/A"|floatformat:2 }}</td>
+                <td class="border px-4 py-2 text-right">${{ asset.current_value|floatformat:2 }}</td>
+                <td {{ asset.profit_loss|profit_loss_color }} class="border px-4 py-2 text-right font-semibold">
+                    ${{ asset.profit_loss|floatformat:2 }}
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5">No assets found</td>
+                <td colspan="7" class="border px-4 py-2 text-center">No assets found</td>
             </tr>
             {% endfor %}
         </tbody>

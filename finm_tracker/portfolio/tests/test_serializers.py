@@ -24,7 +24,7 @@ class AssetSerializerTestCase(TestCase):
 
     def test_contains_expected_fields(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), set(['id', 'symbol', 'name', 'asset_type', 'quantity', 'current_price']))
+        self.assertEqual(set(data.keys()), set(['id', 'symbol', 'name', 'asset_type', 'quantity', 'current_price', 'current_value', 'profit_loss']))
 
     def test_symbol_field_content(self):
         data = self.serializer.data
@@ -50,7 +50,7 @@ class TransactionSerializerTestCase(TestCase):
 
     def test_contains_expected_fields(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), set(['id', 'timestamp', 'asset_symbol', 'transaction_type', 'quantity', 'price']))
+        self.assertEqual(set(data.keys()), set(['id', 'timestamp', 'asset_symbol', 'transaction_type', 'quantity', 'price', 'current_value']))
 
     def test_asset_symbol_field_content(self):
         data = self.serializer.data
@@ -83,7 +83,7 @@ class PortfolioSerializerTestCase(APITestCase):
 
     def test_contains_expected_fields(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), set(['id', 'user', 'assets', 'transactions']))
+        self.assertEqual(set(data.keys()), set(['id', 'user', 'assets', 'transactions', 'assets_value', 'assets_cost']))
 
     def test_assets_field_content(self):
         data = self.serializer.data

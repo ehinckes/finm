@@ -136,9 +136,10 @@ def assets_view(request):
     assets = assets.order_by(sort_by)
 
     # Total value calculation
-    total_value = assets.aggregate(
-        total=Sum(F('quantity') * F('current_price'))
-    )['total'] or 0
+    total_value = sum(asset.current_value for asset in assets)
+
+    # Total profit loss calculation
+    total_profit_loss = sum(asset.profit_loss for asset in assets)
 
     # Determine display text for asset type and filter
     asset_type_display_map = {
@@ -154,11 +155,11 @@ def assets_view(request):
     context = {
         'assets': assets,
         'total_value': total_value,
+        'total_profit_loss': total_profit_loss,
         'current_sort': sort_by,
         'current_filter': current_filter,
         'asset_type_display': asset_type_display,
         'button_text': button_text,
-
     }
     return render(request, 'portfolio/assets.html', context)
 

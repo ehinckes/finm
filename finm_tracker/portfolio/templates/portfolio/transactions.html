@@ -28,7 +28,7 @@
                     <td class="border border-gray-300 p-2">{{ transaction.get_transaction_type_display }}</td>
                     <td class="border border-gray-300 p-2">{{ transaction.quantity|display_decimal }}</td>
                     <td class="border border-gray-300 p-2">${{ transaction.price|floatformat:2 }}</td>
-                    <td class="border border-gray-300 p-2">${{ transaction.quantity|multiply:transaction.price|floatformat:2 }}</td>
+                    <td class="border border-gray-300 p-2">${{ transaction.current_value|floatformat:2 }}</td>
                     <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
                 </tr>
                 {% empty %}
