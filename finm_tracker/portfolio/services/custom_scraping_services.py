@@ -33,16 +33,16 @@ class CustomScrapingService:
                 columns = row.find_all('td')
                 if len(columns) >= 5:
                     symbol = columns[0].text.strip().split(' ')[0]
-                    price = columns[2].text.strip()
-                    change = columns[3].text.strip()
-                    percent_change = columns[4].text.strip()
-                    volume = columns[5].text.strip() if len(columns) > 5 else "N/A"
+                    price = columns[1].text.strip().split(' ')[0]
+                    change = columns[2].text.strip()
+                    percent_change = columns[3].text.strip()
+                    volume = columns[4].text.strip() if len(columns) > 4 else "N/A"
 
                     movers.append({
                         'Symbol': symbol,
                         'Price': price,
                         'Change': change,
-                        'Percent Change': percent_change,
+                        'Percent_Change': percent_change,
                         'Volume': volume
                     })
             return movers
@@ -95,7 +95,7 @@ class CustomScrapingService:
                         'Symbol': symbol,
                         'Price': price,
                         'Change': change,
-                        'Percent Change': percent_change,
+                        'Percent_Change': percent_change,
                         'Volume': volume
                     })
             return movers

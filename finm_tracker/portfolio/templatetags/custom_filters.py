@@ -21,3 +21,7 @@ def display_decimal(value):
 def profit_loss_color(value):
     color = '#059669' if value >= 0 else '#e11d48'
     return mark_safe(f'style="color: {color};"')
+
+@register.filter
+def remove_usd_suffix(value):
+    return value.split('-')[0] if '-' in value else value
