@@ -11,7 +11,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from decimal import Decimal, InvalidOperation
-
+from django.contrib.auth import get_user_model
+from django import forms
 
 
 
@@ -78,6 +79,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         serializer.instance = transaction
 
 
+
+
+
 @login_required
 def home_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
@@ -103,15 +107,30 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'portfolio/login.html', {'form': form})
 
+User = get_user_model()
+
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'w-full px-3 py-2 border border-custom-green-light rounded focus:outline-none focus:ring-2 focus:ring-custom-green-full'
+
+            
 def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect('home')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'portfolio/register.html', {'form': form})
 
 @login_required
