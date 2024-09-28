@@ -16,7 +16,7 @@ class Portfolio(models.Model):
 
     @property
     def assets_cost(self):
-        return sum(asset.cost_price for asset in self.assets.all())
+        return sum(asset.total_cost for asset in self.assets.all())
 
 
 class Asset(models.Model):

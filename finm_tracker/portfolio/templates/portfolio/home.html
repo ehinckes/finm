@@ -8,15 +8,29 @@
     <div>
         <div class="bg-white p-6 rounded shadow mb-6">
             <h2 class="text-xl font-semibold mb-4">Portfolio Summary</h2>
-            <p>Total Assets: {{ portfolio.assets.count }}</p>
-            <p>Total Transactions: {{ portfolio.transactions.count }}</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p>Portfolio Value: ${{ portfolio_value|floatformat:2 }}</p>
+                    <p>P&L: 
+                        <span class="{% if portfolio_pl >= 0 %}text-custom-green-full{% else %}text-red-500{% endif %}">
+                            ${{ portfolio_pl|floatformat:2 }}
+                        </span>
+                    </p>
+                    <p>Total Assets: {{ portfolio.assets.count }}</p>
+                    <p>Total Transactions: {{ portfolio.transactions.count }}</p>
+                </div>
+                <div>
+                    <canvas id="assetAllocationChart" style="max-width: 200px; max-height: 200px;"></canvas>
+                    <div id="chartKey" class="mt-2 text-sm flex flex-wrap justify-center"></div>
+                </div>
+            </div>
         </div>
 
         <div class="bg-white p-6 rounded shadow">
             <h2 class="text-xl font-semibold mb-4">Recent Transactions</h2>
-            {% if portfolio.transactions.all %}
+            {% if recent_transactions %}
                 <ul>
-                {% for transaction in portfolio.transactions.all|slice:":5" %}
+                {% for transaction in recent_transactions %}
                     <li>{{ transaction.transaction_type|title }} {{ transaction.quantity }} {{ transaction.asset_symbol }} at ${{ transaction.price }}</li>
                 {% endfor %}
                 </ul>
@@ -89,4 +103,68 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('assetAllocationChart').getContext('2d');
+    var assetAllocation = JSON.parse('{{ asset_allocation_json|safe }}');
+    
+    // Sort assets by value in descending order
+    assetAllocation.sort((a, b) => b.value - a.value);
+
+    // Take top 3 assets and calculate "Others" if necessary
+    var topAssets = assetAllocation.slice(0, 3);
+    var otherAssets = assetAllocation.slice(3);
+    var totalValue = assetAllocation.reduce((sum, asset) => sum + asset.value, 0);
+
+    if (otherAssets.length > 0) {
+        var otherValue = otherAssets.reduce((sum, asset) => sum + asset.value, 0);
+        topAssets.push({
+            name: 'Others',
+            value: otherValue,
+            color: '#808080' // Grey color for "Others"
+        });
+    }
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: topAssets.map(item => item.name),
+            datasets: [{
+                data: topAssets.map(item => item.value),
+                backgroundColor: topAssets.map(item => item.color),
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.parsed;
+                            var percentage = Math.round((value / totalValue) * 100);
+                            return label + ': ' + percentage + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Create chart key
+    var chartKey = document.getElementById('chartKey');
+    topAssets.forEach(asset => {
+        var percentage = Math.round((asset.value / totalValue) * 100);
+        var keyItem = document.createElement('div');
+        keyItem.className = 'mr-3 mb-1';
+        keyItem.innerHTML = `<span style="color:${asset.color};">●</span> ${asset.name}: ${percentage}%`;
+        chartKey.appendChild(keyItem);
+    });
+});
+</script>
 {% endblock %}

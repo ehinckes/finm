@@ -13,6 +13,7 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
 from django import forms
+import json
 
 
 
@@ -80,18 +81,37 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
 
 
-
-
 @login_required
 def home_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
     daily_gainers = PortfolioService.fetch_daily_gainers()
+    
+    # Calculate portfolio value and P&L
+    portfolio_value = portfolio.assets_value
+    portfolio_cost = portfolio.assets_cost
+    portfolio_pl = portfolio_value - portfolio_cost
+
+    # Get asset allocation data for pie chart
+    assets = Asset.objects.filter(portfolio=portfolio)
+    asset_allocation = [
+        {
+            'name': asset.name,
+            'value': float(asset.market_value),
+            'color': f'#{hash(asset.symbol) % 0xFFFFFF:06x}'  # Generate a color based on the asset symbol
+        }
+        for asset in assets if asset.market_value > 0
+    ]
+
     context = {
         'portfolio': portfolio,
+        'portfolio_value': portfolio_value,
+        'portfolio_pl': portfolio_pl,
         'recent_transactions': portfolio.transactions.all().order_by('-timestamp')[:5],
         'daily_gainers': daily_gainers,
+        'asset_allocation_json': json.dumps(asset_allocation),
     }
     return render(request, 'portfolio/home.html', context)
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -107,8 +127,8 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'portfolio/login.html', {'form': form})
 
-User = get_user_model()
 
+User = get_user_model()
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
@@ -121,7 +141,6 @@ class CustomUserCreationForm(UserCreationForm):
         for field in self.fields.values():
             field.widget.attrs['class'] = 'w-full px-3 py-2 border border-custom-green-light rounded focus:outline-none focus:ring-2 focus:ring-custom-green-full'
 
-            
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -132,6 +151,7 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'portfolio/register.html', {'form': form})
+
 
 @login_required
 def logout_view(request):
