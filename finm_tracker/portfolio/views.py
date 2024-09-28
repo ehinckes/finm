@@ -81,9 +81,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
 @login_required
 def home_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
+    daily_gainers = PortfolioService.fetch_daily_gainers()
     context = {
         'portfolio': portfolio,
-        'recent_transactions': portfolio.transactions.all().order_by('-timestamp')[:5]
+        'recent_transactions': portfolio.transactions.all().order_by('-timestamp')[:5],
+        'daily_gainers': daily_gainers,
     }
     return render(request, 'portfolio/home.html', context)
 

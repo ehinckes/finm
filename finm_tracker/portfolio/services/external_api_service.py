@@ -1,9 +1,9 @@
 import yfinance as yf
-from yahoo_fin import stock_info
-from datetime import datetime
 from django.core.cache import cache
-from django.utils import timezone
 from decimal import Decimal
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 
 class ExternalAPIService:
     @staticmethod
@@ -69,3 +69,28 @@ class ExternalAPIService:
         
 
 
+    @staticmethod
+    def _fetch_daily_gainers(count=25):
+        url = f"https://finance.yahoo.com/gainers?count={count}"
+        
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        
+        try:
+            r = requests.get(url, headers=headers)
+            soup = BeautifulSoup(r.text, 'html.parser')
+            
+            table = soup.find('table', {'class': 'W(100%)'})
+            
+            if table:
+                headers = [th.text for th in table.find_all('th')]
+                rows = []
+                for row in table.find_all('tr')[1:]:
+                    rows.append([td.text for td in row.find_all('td')])
+                
+                df = pd.DataFrame(rows, columns=headers)
+                return df.to_dict('records')
+            else:
+                return []
+        except Exception as e:
+            print(f"Error fetching daily gainers: {str(e)}")
+            return []

@@ -1,29 +1,76 @@
 {% extends "portfolio/base.html" %}
-
 {% block title %}Home - Financial Portfolio Tracker{% endblock %}
-
 {% block content %}
+
 <h1 class="custom-h1">Welcome to Your Portfolio</h1>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-xl font-semibold mb-4">Portfolio Summary</h2>
-        <p>Total Assets: {{ portfolio.assets.count }}</p>
-        <p>Total Transactions: {{ portfolio.transactions.count }}</p>
-        <!-- Add more portfolio summary information here -->
+    <div>
+        <div class="bg-white p-6 rounded shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Portfolio Summary</h2>
+            <p>Total Assets: {{ portfolio.assets.count }}</p>
+            <p>Total Transactions: {{ portfolio.transactions.count }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4">Recent Transactions</h2>
+            {% if portfolio.transactions.all %}
+                <ul>
+                {% for transaction in portfolio.transactions.all|slice:":5" %}
+                    <li>{{ transaction.transaction_type|title }} {{ transaction.quantity }} {{ transaction.asset_symbol }} at ${{ transaction.price }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No recent transactions</p>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-xl font-semibold mb-4">Recent Transactions</h2>
-        <ul>
-            {% for transaction in recent_transactions %}
-                <li class="mb-2">
-                    {{ transaction.transaction_type|title }} {{ transaction.quantity }} {{ transaction.asset_symbol }} at ${{ transaction.price }}
-                </li>
-            {% empty %}
-                <li>No recent transactions</li>
-            {% endfor %}
-        </ul>
+    <div>
+        <div class="bg-white p-6 rounded shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Daily Stock Movers</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Top Gainers</h3>
+                    <ul>
+                    {% for stock in daily_gainers.0|slice:":3" %}
+                        <li>{{ stock.Symbol }}: {{ stock.Price }} ({{ stock.Percent_Change }})</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Top Losers</h3>
+                    <ul>
+                    {% for stock in daily_gainers.1|slice:":3" %}
+                        <li>{{ stock.Symbol }}: {{ stock.Price }} ({{ stock.Percent_Change }})</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4">Daily Crypto Movers</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Top Gainers</h3>
+                    <ul>
+                    {% for crypto in daily_gainers.2|slice:":3" %}
+                        <li>{{ crypto.Symbol }}: {{ crypto.Price }} ({{ crypto.Percent_Change }})</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Top Losers</h3>
+                    <ul>
+                    {% for crypto in daily_gainers.3|slice:":3" %}
+                        <li>{{ crypto.Symbol }}: {{ crypto.Price }} ({{ crypto.Percent_Change }})</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
 {% endblock %}

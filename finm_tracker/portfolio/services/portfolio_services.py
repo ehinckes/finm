@@ -4,6 +4,9 @@ from django.utils import timezone
 from ..models import Asset, Transaction
 from decimal import Decimal
 from .external_api_service import ExternalAPIService
+from .custom_scraping_services import CustomScrapingService
+from django.core.cache import cache
+from django.conf import settings
 
 class PortfolioService:
     @staticmethod
@@ -81,3 +84,23 @@ class PortfolioService:
         return transaction, asset
     
 
+    @staticmethod
+    def fetch_daily_gainers():
+        # Try to get the data from cache first
+        cache_key = 'daily_movers'
+        cached_data = cache.get(cache_key)
+
+        if cached_data is not None:
+            return cached_data
+        
+         # If not in cache, fetch the data
+        movers = []
+        movers.append(CustomScrapingService.fetch_stock_movers("gainers"))
+        movers.append(CustomScrapingService.fetch_stock_movers("losers"))
+        movers.append(CustomScrapingService.fetch_crypto_movers("gainers"))
+        movers.append(CustomScrapingService.fetch_crypto_movers("losers"))
+
+        # Cache the data for 15 minutes (adjust as needed)
+        cache.set(cache_key, movers, 60 * 15)
+
+        return movers
