@@ -91,24 +91,32 @@ def home_view(request):
     portfolio_cost = portfolio.assets_cost
     portfolio_pl = portfolio_value - portfolio_cost
 
-    # Get asset allocation data for pie chart
+    # Get asset allocation data for pie chart, grouped by sector
     assets = Asset.objects.filter(portfolio=portfolio)
-    asset_allocation = [
+    sector_allocation = {}
+    for asset in assets:
+        if asset.market_value > 0:
+            if asset.sector not in sector_allocation:
+                sector_allocation[asset.sector] = 0
+            sector_allocation[asset.sector] += float(asset.market_value)
+    
+    # Convert sector_allocation to list of dictionaries
+    sector_allocation_list = [
         {
-            'name': asset.name,
-            'value': float(asset.market_value),
-            'color': f'#{hash(asset.symbol) % 0xFFFFFF:06x}'  # Generate a color based on the asset symbol
+            'name': sector,
+            'value': value,
+            'color': f'#{hash(sector) % 0xFFFFFF:06x}'  # Generate a color based on the sector name
         }
-        for asset in assets if asset.market_value > 0
+        for sector, value in sector_allocation.items()
     ]
-
+    
     context = {
         'portfolio': portfolio,
         'portfolio_value': portfolio_value,
         'portfolio_pl': portfolio_pl,
         'recent_transactions': portfolio.transactions.all().order_by('-timestamp')[:5],
         'daily_gainers': daily_gainers,
-        'asset_allocation_json': json.dumps(asset_allocation),
+        'sector_allocation_json': json.dumps(sector_allocation_list),
     }
     return render(request, 'portfolio/home.html', context)
 

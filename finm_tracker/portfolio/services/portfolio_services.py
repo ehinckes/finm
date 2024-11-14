@@ -64,7 +64,8 @@ class PortfolioService:
                         name=asset_info['name'],
                         asset_type=asset_type,
                         position=quantity,
-                        last_price=asset_info['last_price']
+                        last_price=asset_info['last_price'],
+                        sector=asset_info['sector']
                     )
 
                 else:

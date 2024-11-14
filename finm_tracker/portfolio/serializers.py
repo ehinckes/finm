@@ -10,7 +10,7 @@ class AssetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Asset
-        fields = ['id', 'symbol', 'name', 'asset_type', 'quantity', 'last_price', 'market_value', 'profit_loss', 'total_cost', 'average_cost']
+        fields = ['id', 'symbol', 'name', 'asset_type', 'quantity', 'last_price', 'market_value', 'profit_loss', 'total_cost', 'average_cost', 'sector']
         read_only_fields = ['id', 'average_cost', 'total_cost', 'market_value', 'profit_loss']
 
     def to_representation(self, instance):

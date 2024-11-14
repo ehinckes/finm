@@ -26,7 +26,8 @@ class ExternalAPIService:
 
             return {
                 'name': info.get('longName', asset_symbol),
-                'last_price': Decimal(str(info.get('bid', 0)))
+                'last_price': Decimal(str(info.get('bid', 0))),
+                'sector': info.get('sector', 'Unknown')
             }
         
         except Exception as e:
@@ -42,7 +43,8 @@ class ExternalAPIService:
 
             return {
                 'name': info.get('longName', asset_symbol),
-                'last_price': Decimal(str(info.get('bid', 0)))
+                'last_price': Decimal(str(info.get('bid', 0))),
+                'sector': "Aus Equity"
             }
         
         except Exception as e:
@@ -60,7 +62,8 @@ class ExternalAPIService:
 
             return {
                 'name': info.get('name', asset_symbol),
-                'last_price': Decimal(str(info.get('open', 0))) # Using open price as current price for crypto
+                'last_price': Decimal(str(info.get('open', 0))), # Using open price as current price for crypto
+                'sector': "Cryptocurrency"
             }
         
         except Exception as e:
