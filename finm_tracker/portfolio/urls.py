@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     PortfolioViewSet, AssetViewSet, TransactionViewSet,
-    home_view, register_view, login_view, logout_view, assets_view, transactions_view, add_transaction_view
+    home_view, register_view, login_view, logout_view, assets_view, transactions_view, add_transaction_view, performance_view, risks_view, projections_view
 )
 
 router = DefaultRouter()
@@ -24,6 +24,9 @@ web_urlpatterns = [
     path('assets/', assets_view, name='assets'),
     path('transactions/', transactions_view, name='transactions'),
     path('add-transaction/', add_transaction_view, name='add_transaction'),
+    path('performance/', performance_view, name='performance'),
+    path('risks/', risks_view, name='risks'),
+    path('projections/', projections_view, name='projections'),
 ]
 
 # Combine all routes

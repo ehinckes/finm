@@ -104,3 +104,10 @@ class Transaction(models.Model):
     @property
     def transaction_value(self):
         return self.quantity * self.price
+    
+    @property
+    def weight_and_time(self):
+        if self.transaction_type == 'buy':
+            time_elapsed = timezone.now() - self.timestamp
+            return self.quantity, time_elapsed.total_seconds()/31536000
+        return None

@@ -23,8 +23,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ['id', 'asset_symbol', 'transaction_type', 'quantity', 'price', 'timestamp', 'transaction_value']
-        read_only_fields = ['id', 'timestamp', 'transaction_value']
+        fields = ['id', 'asset_symbol', 'transaction_type', 'quantity', 'price', 'timestamp', 'transaction_value', 'weight_and_time']
+        read_only_fields = ['id', 'timestamp', 'transaction_value', 'weight_and_time']
 
 class PortfolioSerializer(serializers.ModelSerializer):
     assets = AssetSerializer(many=True, read_only=True)

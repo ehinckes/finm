@@ -80,10 +80,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
         serializer.instance = transaction
 
 
-
 @login_required
 def home_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
+    
+    # Update prices before calculating portfolio values
+    update_summary = PortfolioService.update_portfolio_prices(portfolio)
     daily_gainers = PortfolioService.fetch_daily_gainers()
     
     # Calculate portfolio value and P&L
@@ -117,6 +119,8 @@ def home_view(request):
         'recent_transactions': portfolio.transactions.all().order_by('-timestamp')[:5],
         'daily_gainers': daily_gainers,
         'sector_allocation_json': json.dumps(sector_allocation_list),
+        'prices_updated': not update_summary['cached'],  # Indicates if prices were freshly updated
+        'update_summary': update_summary,  # Include update summary in context
     }
     return render(request, 'portfolio/home.html', context)
 
@@ -169,6 +173,10 @@ def logout_view(request):
 @login_required
 def assets_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
+    
+    # Update prices before displaying assets
+    update_summary = PortfolioService.update_portfolio_prices(portfolio)
+    
     assets = Asset.objects.filter(portfolio=portfolio)
 
     # Filtering
@@ -209,6 +217,8 @@ def assets_view(request):
         'current_filter': current_filter,
         'asset_type_display': asset_type_display,
         'button_text': button_text,
+        'prices_updated': not update_summary['cached'],  # Indicates if prices were freshly updated
+        'update_summary': update_summary,  # Include update summary in context
     }
     return render(request, 'portfolio/assets.html', context)
 
@@ -247,3 +257,33 @@ def add_transaction_view(request):
             error_message = str(e)
             return render(request, 'portfolio/add_transaction.html', {'error': error_message})
     return render(request, 'portfolio/add_transaction.html')
+
+
+
+@login_required
+def performance_view(request):
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    context = {
+        'portfolio': portfolio,
+    }
+    return render(request, 'portfolio/performance.html', context)
+
+
+
+@login_required
+def risks_view(request):
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    context = {
+        'portfolio': portfolio,
+    }
+    return render(request, 'portfolio/risks.html', context)
+
+@login_required
+def projections_view(request):
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    context = {
+        'portfolio': portfolio,
+    }
+    return render(request, 'portfolio/projections.html', context)
+
+

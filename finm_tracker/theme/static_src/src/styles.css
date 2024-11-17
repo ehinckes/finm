@@ -12,10 +12,6 @@
     .custom-nav {
         @apply bg-gradient-to-r from-custom-green-full to-custom-green-dark p-4 text-white;
     }
-  
-    .custom-nav-container {
-        @apply container mx-auto flex justify-between items-center;
-    }
 
     .logo {
         @apply text-2xl font-bold;
@@ -30,13 +26,16 @@
     }
 
     .custom-footer {
-        @apply bg-custom-green-dark text-white p-4 mt-8;
+        @apply bg-custom-green-dark text-white p-4 mt-auto;
     }
 
-    .custom-footer-container {
-        @apply container mx-auto text-center;
-    }
 
+
+    @layer components {
+        .hover\:bg-custom-green-light:hover {
+            background-color: #80AF81;
+        }
+    }
 
 
   
