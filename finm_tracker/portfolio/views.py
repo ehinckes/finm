@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -173,6 +174,10 @@ def logout_view(request):
 @login_required
 def assets_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
+    
+    # Clear cache if force update requested
+    if request.GET.get('force_update'):
+        cache.delete(f'portfolio_prices_{portfolio.id}')
     
     # Update prices before displaying assets
     update_summary = PortfolioService.update_portfolio_prices(portfolio)

@@ -153,14 +153,31 @@ class PortfolioService:
             {
                 'updated': number of prices updated,
                 'failed': number of failed updates,
-                'cached': boolean indicating if cached data was used
+                'cached': boolean indicating if cached data was used,
+                'cache_time_remaining': minutes until next update
             }
         """
-        # Check cache first
+        # Check cache and get time remaining
         cache_key = f'portfolio_prices_{portfolio.id}'
-        if cache.get(cache_key):
-            return {'updated': 0, 'failed': 0, 'cached': True}
+        cache_timestamp = cache.get(cache_key)
+        
+        # If we have a cached timestamp, calculate time remaining
+        if cache_timestamp:
+            current_time = timezone.now()
+            time_diff = (current_time - cache_timestamp).total_seconds()
+            cache_duration = 60 * 15  # 15 minutes in seconds
+            
+            if time_diff < cache_duration:
+                # Cache is still valid
+                minutes_remaining = int((cache_duration - time_diff) / 60)
+                return {
+                    'updated': 0,
+                    'failed': 0,
+                    'cached': True,
+                    'cache_time_remaining': minutes_remaining
+                }
 
+        # If we reach here, either no cache or cache expired
         assets = portfolio.assets.all()
         updated = 0
         failed = 0
@@ -183,15 +200,16 @@ class PortfolioService:
             else:
                 failed += 1
 
-        # Cache the update timestamp for 15 minutes
-        cache.set(cache_key, True, 60 * 15)  # 15 minutes
+        # Cache the current timestamp
+        cache.set(cache_key, timezone.now(), 60 * 15)  # 15 minutes
 
         return {
             'updated': updated,
             'failed': failed,
-            'cached': False
+            'cached': False,
+            'cache_time_remaining': 15
         }
-
+    
     @staticmethod
     def get_portfolio_with_fresh_prices(portfolio):
         """
