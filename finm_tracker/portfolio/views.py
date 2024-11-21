@@ -15,6 +15,8 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
 from django import forms
 import json
+import csv
+from django.http import HttpResponse
 
 
 
@@ -234,6 +236,9 @@ def transactions_view(request):
     context = {'transactions': transactions}
     return render(request, 'portfolio/transactions.html', context)
 
+
+
+
 @login_required
 def add_transaction_view(request):
     if request.method == 'POST':
@@ -265,6 +270,12 @@ def add_transaction_view(request):
 
 
 
+
+
+
+
+
+
 @login_required
 def performance_view(request):
     portfolio = get_object_or_404(Portfolio, user=request.user)
@@ -272,8 +283,6 @@ def performance_view(request):
         'portfolio': portfolio,
     }
     return render(request, 'portfolio/performance.html', context)
-
-
 
 @login_required
 def risks_view(request):
@@ -292,3 +301,27 @@ def projections_view(request):
     return render(request, 'portfolio/projections.html', context)
 
 
+@login_required
+def export_transactions_csv(request):
+    # Create a response object with CSV content type
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+
+    # Write CSV headers
+    writer = csv.writer(response)
+    writer.writerow(['Timestamp', 'Asset', 'Type', 'Quantity', 'Price', 'Total'])
+
+    # Query transactions and write each row
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    transactions = Transaction.objects.filter(portfolio=portfolio).order_by('-timestamp')
+    for transaction in transactions:
+        writer.writerow([
+            transaction.timestamp.strftime("%d/%m/%Y, %H:%M:%S"),
+            transaction.asset_symbol,
+            transaction.get_transaction_type_display(),
+            transaction.quantity,
+            f"{transaction.price:.2f}",
+            f"{transaction.transaction_value:.2f}"
+        ])
+    
+    return response
