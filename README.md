@@ -1,7 +1,7 @@
 # FinM - Financial Portfolio Management System
 
 ## Overview
-FinM Tracker is a comprehensive financial portfolio management system built with Django. It enables users to track their investment portfolio, analyze performance, assess risks, and make data-driven investment decisions.
+FinM Tracker is a comprehensive financial portfolio management system built with Django. It enables users to track their investment portfolio, analyze performance, assess risks, and make data-driven investment decisions. This project is still under development and is NOT meant to be used for real investment decisions.
 
 ## Features
 - **Portfolio Management**
