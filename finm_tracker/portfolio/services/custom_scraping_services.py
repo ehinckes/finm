@@ -7,7 +7,7 @@ class CustomScrapingService:
     A service class that scrapes Yahoo Finance for top market movers data.
     Provides functionality to fetch both stock and cryptocurrency gainers/losers.
     """
-    
+     
     @staticmethod
     def fetch_stock_movers(movement):
         """
@@ -74,7 +74,6 @@ class CustomScrapingService:
         except requests.RequestException as e:
             print(f"An error occurred while fetching the data: {e}")
             return []
-        
     
     @staticmethod
     def fetch_crypto_movers(movement):
