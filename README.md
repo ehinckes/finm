@@ -53,7 +53,7 @@ finm_tracker/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ehinckes/finm_tracker.git
+git clone https://github.com/ehinckes/finm.git
 cd finm_tracker
 ```
 
