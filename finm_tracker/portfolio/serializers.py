@@ -36,7 +36,7 @@ class AssetSerializer(serializers.ModelSerializer):
             'symbol',
             'name',
             'asset_type',
-            'quantity',
+            'position',
             'last_price',
             'market_value',
             'profit_loss',
@@ -84,15 +84,13 @@ class TransactionSerializer(serializers.ModelSerializer):
             'quantity',
             'price',
             'timestamp',
-            'transaction_value',
-            'weight_and_time'
+            'transaction_value'
         ]
         # Protect system-generated and calculated fields
         read_only_fields = [
             'id',
             'timestamp',
-            'transaction_value',
-            'weight_and_time'
+            'transaction_value'
         ]
 
 

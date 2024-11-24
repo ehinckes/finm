@@ -73,10 +73,6 @@ class AssetViewSet(viewsets.ModelViewSet):
         serializer.save(portfolio=portfolio)
 
 class TransactionViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for handling Transaction-related API endpoints.
-    Provides CRUD operations for transactions with enhanced error handling.
-    """
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -90,44 +86,47 @@ class TransactionViewSet(viewsets.ModelViewSet):
         Override create method to handle transaction creation with error handling
         Returns appropriate error responses for different failure scenarios
         """
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Authentication credentials were not provided."}, 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         try:
+            if not serializer.is_valid():
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(
-                serializer.data, 
-                status=status.HTTP_201_CREATED, 
+                serializer.data,
+                status=status.HTTP_201_CREATED,
                 headers=headers
             )
         except ValidationError as e:
             return Response(
-                {"error": str(e)}, 
+                {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            # Log the error here if needed
             return Response(
-                {"error": "An unexpected error occurred"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
     def perform_create(self, serializer):
         """Create transaction and update related portfolio/asset data"""
-        portfolio, created = Portfolio.objects.get_or_create(user=self.request.user)
+        portfolio = Portfolio.objects.get(user=self.request.user)
+        
         transaction, asset = PortfolioService.add_transaction(
             portfolio=portfolio,
             asset_symbol=serializer.validated_data['asset_symbol'],
+            asset_type=serializer.validated_data.get('asset_type'),
             transaction_type=serializer.validated_data['transaction_type'],
             quantity=serializer.validated_data['quantity'],
             price=serializer.validated_data['price'],
             timestamp=serializer.validated_data.get('timestamp')
         )
+        
         serializer.instance = transaction
 
 
