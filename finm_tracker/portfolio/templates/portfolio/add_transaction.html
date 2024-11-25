@@ -1,55 +1,120 @@
 {% extends "portfolio/base.html" %}
 {% block title %}Add Transaction - Financial Portfolio Tracker{% endblock %}
 {% block content %}
+
+{# Page Header #}
 <h1 class="text-3xl font-bold mb-6">Add Transaction</h1>
+
+{# Form Container - Centered with max width and shadow #}
 <div class="max-w-md mx-auto bg-white p-8 rounded shadow">
     <form method="post">
         {% csrf_token %}
+        
+        {# Asset Symbol Input Field #}
         <div class="mb-4">
             <label for="asset_symbol" class="block text-gray-700 text-sm font-bold mb-2">Asset Symbol:</label>
-            <input type="text" name="asset_symbol" id="asset_symbol" required class="w-full px-3 py-2 border rounded-lg">
+            <input 
+                type="text" 
+                name="asset_symbol" 
+                id="asset_symbol" 
+                required 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
         </div>
+
+        {# Asset Type Selection #}
         <div class="mb-4">
             <label for="asset_type" class="block text-gray-700 text-sm font-bold mb-2">Asset Type:</label>
-            <select name="asset_type" id="asset_type" required class="w-full px-3 py-2 border rounded-lg">
+            <select 
+                name="asset_type" 
+                id="asset_type" 
+                required 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
                 <option value="stock_us">US Stock</option>
                 <option value="stock_au">Aus Stock</option>
                 <option value="crypto">Cryptocurrency</option>
             </select>
         </div>
+
+        {# Transaction Type Selection #}
         <div class="mb-4">
             <label for="transaction_type" class="block text-gray-700 text-sm font-bold mb-2">Transaction Type:</label>
-            <select name="transaction_type" id="transaction_type" required class="w-full px-3 py-2 border rounded-lg">
+            <select 
+                name="transaction_type" 
+                id="transaction_type" 
+                required 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
                 <option value="buy">Buy</option>
                 <option value="sell">Sell</option>
             </select>
         </div>
+
+        {# Quantity Input - Allows up to 6 decimal places for crypto #}
         <div class="mb-4">
             <label for="quantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
-            <input type="number" name="quantity" id="quantity" step="0.000001" required class="w-full px-3 py-2 border rounded-lg">
+            <input 
+                type="number" 
+                name="quantity" 
+                id="quantity" 
+                step="0.000001"
+                required 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
         </div>
+
+        {# Price Input - 2 decimal places for currency #}
         <div class="mb-4">
             <label for="price" class="block text-gray-700 text-sm font-bold mb-2">Price:</label>
-            <input type="number" name="price" id="price" step="0.01" required class="w-full px-3 py-2 border rounded-lg">
+            <input 
+                type="number" 
+                name="price" 
+                id="price" 
+                step="0.01"
+                required 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
         </div>
+
+        {# Timestamp Selection Toggle #}
         <div class="mb-4">
             <label for="use_current_time" class="inline-flex items-center">
-                <input type="checkbox" name="use_current_time" id="use_current_time" class="form-checkbox" checked>
+                <input 
+                    type="checkbox" 
+                    name="use_current_time" 
+                    id="use_current_time" 
+                    class="form-checkbox" 
+                    checked
+                >
                 <span class="ml-2">Use current date/time</span>
             </label>
         </div>
+
+        {# Custom Timestamp Input - Hidden by default #}
         <div class="mb-4" id="custom_timestamp_div" style="display: none;">
             <label for="custom_timestamp" class="block text-gray-700 text-sm font-bold mb-2">Custom Timestamp:</label>
-            <input type="datetime-local" name="custom_timestamp" id="custom_timestamp" class="w-full px-3 py-2 border rounded-lg">
+            <input 
+                type="datetime-local" 
+                name="custom_timestamp" 
+                id="custom_timestamp" 
+                class="w-full px-3 py-2 border rounded-lg"
+            >
         </div>
+
+        {# Error Message Display #}
         {% if error %}
             <p class="text-red-500 mb-4">{{ error }}</p>
         {% endif %}
+
+        {# Submit Button #}
         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
             Add Transaction
         </button>
     </form>
 </div>
+
+{# JavaScript for Timestamp Toggle Functionality #}
 <script>
     document.getElementById('use_current_time').addEventListener('change', function() {
         var customTimestampDiv = document.getElementById('custom_timestamp_div');

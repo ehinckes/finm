@@ -2,42 +2,60 @@
 {% load custom_filters %}
 {% block title %}Transactions - Financial Portfolio Tracker{% endblock %}
 {% block content %}
+
+{# Main Container - Uses custom transactions-container class for consistent spacing #}
 <div class="transactions-container">
     <h1 class="custom-h1">Your Transactions</h1>
+
+    {# Action Buttons Container #}
     <div class="mb-4">
+        {# Add Transaction Button - Links to transaction creation form #}
         <a href="{% url 'add_transaction' %}" class="custom-button">
             Add Transaction
         </a>
+        {# Export Button - Triggers CSV download of transactions #}
         <a href="{% url 'export_transactions' %}" class="custom-button">
             Export as CSV
         </a>
     </div>
+
+    {# Transactions Table Container - Horizontal scroll for mobile responsiveness #}
     <div class="overflow-x-auto">
         <table class="w-full border-collapse text-xs">
             <thead>
                 <tr class="bg-gray-100">
+                    {# Table Headers - Each column takes up 1/6 of the table width #}
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Timestamp</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Asset</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Type</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Quantity</th>
                     <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Price</th>
-                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Total</th> 
+                    <th class="border border-gray-300 p-2 text-left font-semibold w-1/6">Total</th>
                 </tr>
             </thead>
             <tbody>
+                {# Transaction Rows - Sorted in reverse chronological order #}
                 {% for transaction in transactions|dictsortreversed:"timestamp" %}
-                <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
-                    <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
-                    <td class="border border-gray-300 p-2">{{ transaction.asset_symbol }}</td>
-                    <td class="border border-gray-300 p-2">{{ transaction.get_transaction_type_display }}</td>
-                    <td class="border border-gray-300 p-2">{{ transaction.quantity|display_decimal }}</td>
-                    <td class="border border-gray-300 p-2">${{ transaction.price|floatformat:2 }}</td>
-                    <td class="border border-gray-300 p-2">${{ transaction.transaction_value|floatformat:2 }}</td>
-                </tr>
+                    {# Alternating row colors for better readability #}
+                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                        {# Timestamp - Formatted as DD/MM/YYYY, HH:MM:SS #}
+                        <td class="border border-gray-300 p-2">{{ transaction.timestamp|date:"d/m/Y, H:i:s" }}</td>
+                        {# Asset Symbol #}
+                        <td class="border border-gray-300 p-2">{{ transaction.asset_symbol }}</td>
+                        {# Transaction Type - Uses get_transaction_type_display for human-readable type #}
+                        <td class="border border-gray-300 p-2">{{ transaction.get_transaction_type_display }}</td>
+                        {# Quantity - Uses custom display_decimal filter for appropriate decimal places #}
+                        <td class="border border-gray-300 p-2">{{ transaction.quantity|display_decimal }}</td>
+                        {# Price per unit - Formatted to 2 decimal places #}
+                        <td class="border border-gray-300 p-2">${{ transaction.price|floatformat:2 }}</td>
+                        {# Total transaction value - Formatted to 2 decimal places #}
+                        <td class="border border-gray-300 p-2">${{ transaction.transaction_value|floatformat:2 }}</td>
+                    </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="6" class="border border-gray-300 p-2 text-center">No transactions found</td>
-                </tr>
+                    {# Displayed when no transactions exist #}
+                    <tr>
+                        <td colspan="6" class="border border-gray-300 p-2 text-center">No transactions found</td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -2,35 +2,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {# Meta Configuration #}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {# Dynamic Title Block #}
     <title>{% block title %}Financial Portfolio Tracker{% endblock %}</title>
+    
+    {# Stylesheets - Using Django-Tailwind compiled CSS #}
     <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
     <link rel="icon" href="{% static 'images/favicon.ico' %}">
-
+    
+    {# Custom Dropdown Styling - Position absolute for proper stacking context #}
     <style>
+        /* Dropdown Menu Container - Uses absolute positioning for proper overlay */
         .dropdown-menu {
             display: none;
-            position: absolute; /* Changed from fixed to absolute */
-            z-index: 50;
-            top: 100%; /* Position directly below parent */
+            position: absolute; /* Allows menu to overlay other content */
+            z-index: 50; /* Ensures dropdown appears above other elements */
+            top: 100%; /* Positions menu directly below trigger */
             left: 0;
-            min-width: 12rem; /* Match w-48 */
+            min-width: 12rem; /* Matches Tailwind's w-48 */
             background-color: white;
             border: 1px solid #e5e7eb;
             border-radius: 0.375rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-
+        
+        /* Dropdown Container - Creates positioning context for menu */
         .dropdown {
-            position: relative; /* Ensure proper positioning context */
+            position: relative;
         }
-
+        
+        /* Show dropdown on hover */
         .dropdown:hover .dropdown-menu {
             display: block;
         }
-
-        /* Explicit hover styles */
+        
+        /* Dropdown Menu Items - Consistent styling and hover states */
         .dropdown-menu a {
             display: block;
             padding: 0.5rem 1rem;
@@ -38,52 +47,73 @@
             color: #374151;
             transition: background-color 150ms ease-in-out;
         }
-
+        
+        /* Hover effect for dropdown items */
         .dropdown-menu a:hover {
-            background-color: #D6EFD8;
+            background-color: #D6EFD8; /* Light green background on hover */
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
+
+{# Body uses flex column for sticky footer #}
 <body class="flex flex-col min-h-screen">
+    {# Navigation Bar - Uses custom-nav class with green gradient background #}
     <nav class="custom-nav">
         <div class="container mx-auto flex justify-between items-center">
+            {# Brand Logo #}
             <a href="{% url 'home' %}" class="logo">Portfolio Tracker</a>
+            
+            {# Navigation Links Container #}
             <div class="flex items-center">
                 {% if user.is_authenticated %}
+                    {# Main Navigation Links #}
                     <a href="{% url 'home' %}" class="custom-nav-links">Home</a>
+                    
+                    {# Analysis Dropdown Menu #}
                     <div class="dropdown">
                         <button class="custom-nav-links inline-flex items-center">
                             Analysis
+                            {# Dropdown Arrow Icon #}
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
+                        {# Dropdown Menu Items #}
                         <div class="dropdown-menu">
                             <a href="{% url 'performance' %}">Performance</a>
                             <a href="{% url 'risks' %}">Risks</a>
                             <a href="{% url 'projections' %}">Projections</a>
                         </div>
                     </div>
+                    
+                    {# Additional Navigation Links #}
                     <a href="{% url 'assets' %}" class="custom-nav-links">Assets</a>
                     <a href="{% url 'transactions' %}" class="custom-nav-links">Transactions</a>
                     <a href="{% url 'logout' %}" class="custom-nav-button">Logout</a>
                 {% else %}
+                    {# Authentication Links #}
                     <a href="{% url 'login' %}" class="custom-nav-links">Login</a>
                     <a href="{% url 'register' %}" class="custom-nav-button">Register</a>
                 {% endif %}
             </div>
         </div>
     </nav>
+
+    {# Main Content Area #}
     <main class="container mx-auto mt-8 p-4 flex-grow">
         {% block content %}
         {% endblock %}
     </main>
+
+    {# Footer - Uses custom-footer class with dark green background #}
     <footer class="custom-footer">
         <div class="container mx-auto text-center">
             <p>&copy; 2024 Financial Portfolio Tracker. All rights reserved.</p>
         </div>
     </footer>
+
+    {# Additional Scripts Block #}
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

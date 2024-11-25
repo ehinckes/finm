@@ -3,10 +3,13 @@
 {% load custom_filters %}
 {% block title %}{{ asset_type_display }} - Financial Portfolio Tracker{% endblock %}
 {% block content %}
+
+{# Main Page Header - Dynamic based on asset type #}
 <h1 class="custom-h1">Your {{ asset_type_display }}</h1>
 
-<!-- Portfolio Value Card -->
+{# Portfolio Summary Card #}
 <div class="bg-white p-6 rounded shadow mb-6 flex justify-between items-center">
+    {# Total Value and P/L Display #}
     <div class="total-value flex flex-col">
         <div class="mb-2">
             Total {{ asset_type_display }} Value:
@@ -14,11 +17,13 @@
         </div>
         <div>
             Total {{ asset_type_display }} Profit/Loss:
+            {# Using custom template filter for profit/loss color styling #}
             <span id="portfolio-profit-loss" class="font-bold" {{ total_profit_loss|profit_loss_color }}>
                 ${{ total_profit_loss|floatformat:2 }}
             </span>
         </div>
     </div>
+    {# Asset Type Filter Button #}
     <div class="asset-type-filter">
         <button id="filterButton" class="filter-button">
             Filter: {{ button_text }}
@@ -26,11 +31,12 @@
     </div>
 </div>
 
-<!-- Assets Table -->
+{# Assets Table with Sortable Columns #}
 <div class="bg-white p-6 rounded shadow mb-6 overflow-x-auto">
     <table class="w-full border-collapse">
         <thead>
             <tr class="bg-gray-100 borde">
+                {# Sortable Column Headers - Maintains current asset type filter #}
                 <th><a href="?sort=symbol&asset_type={{ current_filter }}">Symbol</a></th>
                 <th><a href="?sort=name&asset_type={{ current_filter }}">Name</a></th>
                 <th><a href="?sort=asset_type&asset_type={{ current_filter }}">Type</a></th>
@@ -44,6 +50,7 @@
         <tbody>
             {% for asset in assets %}
             <tr>
+                {# Asset Details - Right-aligned numerical values #}
                 <td class="border px-4 py-2">{{ asset.symbol }}</td>
                 <td class="border px-4 py-2">{{ asset.name }}</td>
                 <td class="border px-4 py-2">{{ asset.get_asset_type_display }}</td>
@@ -51,6 +58,7 @@
                 <td class="border px-4 py-2 text-right">${{ asset.average_cost|floatformat:2 }}</td>
                 <td class="border px-4 py-2 text-right">${{ asset.last_price|default_if_none:"N/A"|floatformat:2 }}</td>
                 <td class="border px-4 py-2 text-right">${{ asset.market_value|floatformat:2 }}</td>
+                {# Profit/Loss with conditional color styling #}
                 <td {{ asset.profit_loss|profit_loss_color }} class="border px-4 py-2 text-right font-semibold">
                     ${{ asset.profit_loss|floatformat:2 }}
                 </td>
@@ -64,55 +72,61 @@
     </table>
 </div>
 
-<!-- Price Update Status Card -->
+{# Price Update Status Card #}
 <div class="bg-white p-4 rounded shadow mb-6">
-  <div class="flex items-center justify-between">
-      <div class="flex items-center">
-          {% if prices_updated %}
-              <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span class="text-sm text-gray-600">
-                  Prices just updated: 
-                  <span class="font-medium text-green-600">{{ update_summary.updated }} assets</span>
-                  {% if update_summary.failed > 0 %}
-                      <span class="text-gray-500">({{ update_summary.failed }} failed to update)</span>
-                  {% endif %}
-              </span>
-          {% else %}
-              <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span class="text-sm text-gray-500">
-                  Prices last updated {% if update_summary.cache_time_remaining %}
-                      ({{ update_summary.cache_time_remaining }} minutes until next update)
-                  {% else %}
-                      within the past 15 minutes
-                  {% endif %}
-              </span>
-          {% endif %}
-      </div>
-      <div>
-          <form method="GET" action="" class="inline">
-              <input type="hidden" name="asset_type" value="{{ current_filter }}">
-              <input type="hidden" name="sort" value="{{ current_sort }}">
-              <input type="hidden" name="force_update" value="true">
-              <button type="submit" class="text-sm text-custom-green-full hover:text-custom-green-dark focus:outline-none">
-                  Refresh Prices
-              </button>
-          </form>
-      </div>
-  </div>
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            {% if prices_updated %}
+                {# Success Checkmark Icon #}
+                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-sm text-gray-600">
+                    Prices just updated: 
+                    <span class="font-medium text-green-600">{{ update_summary.updated }} assets</span>
+                    {% if update_summary.failed > 0 %}
+                        <span class="text-gray-500">({{ update_summary.failed }} failed to update)</span>
+                    {% endif %}
+                </span>
+            {% else %}
+                {# Clock Icon for Pending Updates #}
+                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-sm text-gray-500">
+                    Prices last updated {% if update_summary.cache_time_remaining %}
+                        ({{ update_summary.cache_time_remaining }} minutes until next update)
+                    {% else %}
+                        within the past 15 minutes
+                    {% endif %}
+                </span>
+            {% endif %}
+        </div>
+        {# Manual Refresh Button #}
+        <div>
+            <form method="GET" action="" class="inline">
+                <input type="hidden" name="asset_type" value="{{ current_filter }}">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="force_update" value="true">
+                <button type="submit" class="text-sm text-custom-green-full hover:text-custom-green-dark focus:outline-none">
+                    Refresh Prices
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
+{# Asset Type Filter Cycling Script #}
 <script>
     document.getElementById('filterButton').addEventListener('click', function() {
+        // Define available asset types and determine next filter
         const assetTypes = ['all', 'stock_us', 'stock_au', 'crypto'];
         const currentFilter = '{{ current_filter }}';
         const currentIndex = assetTypes.indexOf(currentFilter);
         const nextIndex = (currentIndex + 1) % assetTypes.length;
         const nextFilter = assetTypes[nextIndex];
-        // Update the URL and reload the page
+        
+        // Update URL parameters and reload page
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set('asset_type', nextFilter);
         window.location.href = currentUrl.toString();

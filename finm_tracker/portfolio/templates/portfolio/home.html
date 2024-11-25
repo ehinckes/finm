@@ -2,25 +2,37 @@
 {% block title %}Home - Financial Portfolio Tracker{% endblock %}
 {% block content %}
 {% load custom_filters %}
+
+{# Main Page Header #}
 <h1 class="custom-h1">Welcome to Your Portfolio</h1>
 
+{# Main Grid Container - Single column on mobile, two columns on medium screens and up #}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {# Left Column - Portfolio Overview #}
     <div>
+        {# Portfolio Summary Card #}
         <div class="bg-white p-6 rounded shadow mb-6 flex flex-col">
             <h2 class="text-xl font-semibold mb-4">Portfolio Summary</h2>
+            {# Two-column grid for metrics and chart #}
             <div class="grid grid-cols-2 gap-4 flex-grow">
+                {# Key Metrics Column #}
                 <div>
                     <p>Portfolio Value: ${{ portfolio_value|floatformat:2 }}</p>
+                    {# Conditional styling for profit/loss using custom green and red colors #}
                     <p>P&L: <span class="{% if portfolio_pl >= 0 %}text-custom-green-full{% else %}text-red-500{% endif %}">
                         ${{ portfolio_pl|floatformat:2 }}
                     </span></p>
                     <p>Total Assets: {{ portfolio.assets.count }}</p>
                     <p>Total Transactions: {{ portfolio.transactions.count }}</p>
                 </div>
+
+                {# Sector Allocation Chart - Using AlpineJS for reactivity #}
                 <div x-data="sectorChart()" x-init="initChart()" class="flex flex-col">
+                    {# Chart Container - Maintains aspect ratio #}
                     <div class="relative flex-grow">
                         <canvas id="sectorChart" class="w-full h-full"></canvas>
                     </div>
+                    {# Dynamic Chart Legend #}
                     <div id="chartKey" class="mt-2 text-sm flex flex-wrap justify-center">
                         <template x-for="sector in sectors" :key="sector.name">
                             <div class="flex items-center mr-4 mb-2">
@@ -32,32 +44,35 @@
                 </div>
             </div>
         </div>
-
     </div>
 
+    {# Right Column - Market Movers #}
     <div>
+        {# Stock Movers Card #}
         <div class="bg-white p-6 rounded shadow mb-6">
             <h2 class="text-xl font-semibold mb-4">Daily Stock Movers</h2>
             <div class="grid grid-cols-2 gap-4">
+                {# Top Gainers #}
                 <div>
                     <h3 class="text-lg font-semibold mb-2">Top Gainers</h3>
                     <ul>
                         {% for stock in daily_gainers.0|slice:":3" %}
                         <li>
-                            <span class="font-bold">{{ stock.Symbol }}</span>: 
-                            {{ stock.Price }} 
+                            <span class="font-bold">{{ stock.Symbol }}</span>:
+                            {{ stock.Price }}
                             (<span class="text-custom-green-full">{{ stock.Percent_Change }}</span>)
                         </li>
                         {% endfor %}
                     </ul>
                 </div>
+                {# Top Losers #}
                 <div>
                     <h3 class="text-lg font-semibold mb-2">Top Losers</h3>
                     <ul>
                         {% for stock in daily_gainers.1|slice:":3" %}
                         <li>
-                            <span class="font-bold">{{ stock.Symbol }}</span>: 
-                            {{ stock.Price }} 
+                            <span class="font-bold">{{ stock.Symbol }}</span>:
+                            {{ stock.Price }}
                             (<span class="text-red-500">{{ stock.Percent_Change }}</span>)
                         </li>
                         {% endfor %}
@@ -66,28 +81,31 @@
             </div>
         </div>
 
+        {# Crypto Movers Card #}
         <div class="bg-white p-6 rounded shadow">
             <h2 class="text-xl font-semibold mb-4">Daily Crypto Movers</h2>
             <div class="grid grid-cols-2 gap-4">
+                {# Crypto Gainers #}
                 <div>
                     <h3 class="text-lg font-semibold mb-2">Top Gainers</h3>
                     <ul>
                         {% for crypto in daily_gainers.2|slice:":3" %}
                         <li>
-                            <span class="font-bold">{{ crypto.Symbol|remove_usd_suffix }}</span>: 
-                            {{ crypto.Price }} 
+                            <span class="font-bold">{{ crypto.Symbol|remove_usd_suffix }}</span>:
+                            {{ crypto.Price }}
                             (<span class="text-custom-green-full">{{ crypto.Percent_Change }}</span>)
                         </li>
                         {% endfor %}
                     </ul>
                 </div>
+                {# Crypto Losers #}
                 <div>
                     <h3 class="text-lg font-semibold mb-2">Top Losers</h3>
                     <ul>
                         {% for crypto in daily_gainers.3|slice:":3" %}
                         <li>
-                            <span class="font-bold">{{ crypto.Symbol|remove_usd_suffix }}</span>: 
-                            {{ crypto.Price }} 
+                            <span class="font-bold">{{ crypto.Symbol|remove_usd_suffix }}</span>:
+                            {{ crypto.Price }}
                             (<span class="text-red-500">{{ crypto.Percent_Change }}</span>)
                         </li>
                         {% endfor %}
@@ -98,52 +116,61 @@
     </div>
 </div>
 
+{# Required JavaScript Libraries #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+{# Sector Chart Initialization Script #}
 <script>
-    function sectorChart() {
-        return {
-            sectors: JSON.parse('{{ sector_allocation_json|escapejs }}'),
-            chart: null,
-            initChart() {
-                if (this.sectors.length === 0) {
-                    document.getElementById('sectorChart').innerHTML = 'No sector data available';
-                    return;
-                }
-    
-                const ctx = document.getElementById('sectorChart').getContext('2d');
-                this.chart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: this.sectors.map(s => s.name),
-                        datasets: [{
-                            data: this.sectors.map(s => s.value),
-                            backgroundColor: this.sectors.map(s => s.color),
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(2) + '%';
-                                        return `${label}: $${value.toLocaleString()} (${percentage})`;
-                                    }
+function sectorChart() {
+    return {
+        // Parse sector allocation data from Django template
+        sectors: JSON.parse('{{ sector_allocation_json|escapejs }}'),
+        chart: null,
+        
+        // Initialize ChartJS pie chart
+        initChart() {
+            // Handle empty data case
+            if (this.sectors.length === 0) {
+                document.getElementById('sectorChart').innerHTML = 'No sector data available';
+                return;
+            }
+            
+            const ctx = document.getElementById('sectorChart').getContext('2d');
+            this.chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: this.sectors.map(s => s.name),
+                    datasets: [{
+                        data: this.sectors.map(s => s.value),
+                        backgroundColor: this.sectors.map(s => s.color),
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        // Hide default legend (using custom legend)
+                        legend: {
+                            display: false
+                        },
+                        // Custom tooltip formatting
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(2) + '%';
+                                    return `${label}: $${value.toLocaleString()} (${percentage})`;
                                 }
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         }
     }
+}
 </script>
 {% endblock %}
